@@ -36,8 +36,18 @@ class Graph extends React.Component {
    var simulation = d3.forceSimulation();
 
     var color = d3.scaleOrdinal(d3.schemeCategory20);
-    d3.json("states.json", function(error, graph) {
-      if (error) throw error;
+
+    fetch('http://10.76.178.67:5556/network').then(function (response) {
+      var contentType = response.headers.get("content-type");
+      if(contentType && contentType.includes("application/json")) {
+        return response.json();
+      }
+    }).then(function (graph) {
+      //console.log(a.nodes);
+    //})
+
+    //d3.json("states.json", function(error, graph) {
+      //if (error) throw error;
 
       this.setState({states: graph});
 
@@ -60,9 +70,9 @@ class Graph extends React.Component {
                           });
 
           simulation.force("link", d3.forceLink().distance(function (node) {
-                // if (node.source.url === node.target.url) {
+                //if (node.source.url === node.target.url) {
                 //   return 0.05;
-                // } else {
+                //} else {
                   return 100;
                 // }
               }).strength(0.9))
@@ -84,6 +94,8 @@ class Graph extends React.Component {
         .enter().append("path")
           .attr("class", this.graph.dataset.link);
 
+          var getId = 'http://10.76.178.67:5556/state?id=1';
+
       var node = svg.selectAll(".node")
         .data(nodes.filter(function(d) { return d.id; }))
         .enter().append("circle")
@@ -91,7 +103,15 @@ class Graph extends React.Component {
           .attr("r", radius)
           .attr("fill", function(d) { return color(d.url); })
           .on("click", function (node) {
-            this.setState({ title: node.title, text: node.url, hidden: false });
+            var self = this;
+            fetch(getId).then(function (response) {
+              var contentType = response.headers.get("content-type");
+              if(contentType && contentType.includes("application/json")) {
+                return response.json();
+              }
+            }).then(function (a) {
+              self.setState({ title: a.title, text: a.url, hidden: false });
+            })
           }.bind(this))
           .call(d3.drag()
               .on("start", dragstarted)
