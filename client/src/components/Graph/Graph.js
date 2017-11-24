@@ -96,7 +96,7 @@ class Graph extends React.Component {
         return response.json();
       }
     }).then(function (graph) {
-      //console.log(a.nodes);
+      //console.log(graph.nodes);
     //})
 
     //d3.json("states.json", function(error, graph) {
@@ -147,7 +147,7 @@ class Graph extends React.Component {
         .enter().append("path")
           .attr("class", this.graph.dataset.link);
 
-          var getId = 'http://10.76.178.67:5556/state?id=1';
+          var getId = (id) => { return 'http://10.76.178.67:5556/state?id=' + id };
 
       var node = svg.selectAll(".node")
         .data(nodes.filter(function(d) { return d.id; }))
@@ -157,7 +157,7 @@ class Graph extends React.Component {
           .attr("fill", function(d) { return color(d.url); })
           .on("click", function (node) {
             var self = this;
-            fetch(getId).then(function (response) {
+            fetch(getId(node.id)).then(function (response) {
               var contentType = response.headers.get("content-type");
               if(contentType && contentType.includes("application/json")) {
                 return response.json();
