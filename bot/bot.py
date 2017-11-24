@@ -23,6 +23,7 @@ class States:
         self.current_state = None
 
     def add_state(self, url, title, hash_screen, screen, errors):
+
         r = server_api.send_state(url=url, title=title, hash_screen=hash_screen, screenshot=screen)
         if r:
             server_api.send_transaction(self.current_state, r)
@@ -50,7 +51,7 @@ class Bot(object):
 
     def __init__(self, registry):
         capabilities = webdriver.DesiredCapabilities.CHROME
-        capabilities['loggingPrefs'] = {'browser': "SEVERE"}
+        capabilities['loggingPrefs'] = {'browser': "SEVERE", 'performance': 'ALL'}
         self.driver = webdriver.Chrome(desired_capabilities = capabilities)
         self.driver.maximize_window()
         self.start_url = None
@@ -75,6 +76,11 @@ class Bot(object):
         errors = self.driver.get_log('browser')
         return [e for e in errors if "favicon.ico" not in e["message"]]
 
+    def get_network(self):
+        """получение траффика"""
+
+        self.driver.get_log('performance')
+
     def add_state(self):
         """"""
         url = self.driver.current_url
@@ -82,6 +88,7 @@ class Bot(object):
         screen = self.driver.get_screenshot_as_base64()
         hash_screen = hashlib.md5(screen.encode()).hexdigest()
         errors = self.get_errors()
+        requests_count = self.get_network()
         self.states.add_state(url, title, hash_screen, screen, errors)
 
     def auth(self, login, password):
