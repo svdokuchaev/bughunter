@@ -12,7 +12,7 @@ def send_state(url, title, hash_screen, screenshot, has_bug=None):
 
 
 def send_transaction(source, target, action_type):
-    body = dict(source=source, target=target, type=action_type)
-    response = requests.post(config.server_url, json=body)
+    body = dict(source=source, target=target, action=action_type)
+    response = requests.post(config.server_url + "/transition", json=body)
     if response.status_code != 200:
         print("Сервер ответил не 200")
