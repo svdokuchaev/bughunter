@@ -14,15 +14,68 @@ class Graph extends React.Component {
   render() {
     const { title, text, hidden } = this.state;
     return(
-      <div
-          id="graph"
-          className={s.root}
-          data-link={s.link}
-          data-node={s.node}
-          ref={(graph) => { this.graph = graph; }}
-        >
-        <svg width="2000" height="2000"></svg>
-        <Popup title={title} text={text} hidden={hidden} onPopupClose={this.onPopupClose.bind(this)} />
+      <div>
+        <div className={s.header}>
+          <div className={s.top}>
+            <nav className={s.nav}>
+              <div className={s.nav_box}>
+                <h3 className={s.nav_box__title}>Title</h3>
+                <div className={s.nav_box__text}>aksfjalskfjalsfjalsfkajsf</div>
+                <div><img className={s.nav_box__image} src="https://placeimg.com/1000/1000/any" /></div>
+              </div>
+              <div className={s.nav_box}>
+                <h3 className={s.nav_box__title}>Title</h3>
+                <div className={s.nav_box__text}>aksfjalskfjalsfjalsfkajsf</div>
+                <div><img className={s.nav_box__image} src="https://placeimg.com/1000/1000/any" /></div>
+              </div>
+              <div className={s.nav_box}>
+                <h3 className={s.nav_box__title}>Title</h3>
+                <div className={s.nav_box__text}>aksfjalskfjalsfjalsfkajsf</div>
+                <div><img className={s.nav_box__image} src="https://placeimg.com/1000/1000/any" /></div>
+              </div>
+              <div className={s.nav_box}>
+                <h3 className={s.nav_box__title}>Title</h3>
+                <div className={s.nav_box__text}>aksfjalskfjalsfjalsfkajsf</div>
+                <div><img className={s.nav_box__image} src="https://placeimg.com/1000/1000/any" /></div>
+              </div>
+              <div className={s.nav_box}>
+                <h3 className={s.nav_box__title}>Title</h3>
+                <div className={s.nav_box__text}>aksfjalskfjalsfjalsfkajsf</div>
+                <div><img className={s.nav_box__image} src="https://placeimg.com/1000/1000/any" /></div>
+              </div>
+            </nav>
+          </div>
+          <div className={s.bottom}>
+          </div>
+        </div>
+        <div className={s.main}>
+          <section id="top" className={[s.one, s.dark, s.cover].join(' ')}>
+            <div className={s.container}>
+                <h2 className={s.alt}><strong>BUGHUNTER</strong></h2>
+            </div>
+          </section>
+          <section id="portfolio" className={s.two}>
+            <div className={s.container}>
+              <header>
+                <h2>Graph</h2>
+              </header>
+              <p>Vitae natoque dictum etiam semper magnis enim feugiat convallis convallis
+              egestas rhoncus ridiculus in quis risus amet curabitur tempor orci penatibus.
+              Tellus erat mauris ipsum fermentum etiam vivamus eget. Nunc nibh morbi quis
+              fusce hendrerit lacus ridiculus.</p>
+            </div>
+            <div
+              id="graph"
+              className={s.root}
+              data-link={s.link}
+              data-node={s.node}
+              ref={(graph) => { this.graph = graph; }}
+            >
+              <svg width="2000" height="2000"></svg>
+              <Popup title={title} text={text} hidden={hidden} onPopupClose={this.onPopupClose.bind(this)} />
+            </div>
+          </section>
+        </div>
       </div>
     );
   }
