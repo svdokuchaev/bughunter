@@ -1,0 +1,16 @@
+@import '../variables.css';
+
+.root {
+  text-align: center;
+  margin: 20px;
+}
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  fill: none;
+  stroke: #bbb;
+}
