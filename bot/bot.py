@@ -22,16 +22,17 @@ class States:
         self.__count = 0
         self.current_state = None
 
-    def add_state(self, url, title, hash_screen, screen, errors):
+    def add_state(self, url, title, hash_screen, screen, action_type=None, errors=None):
 
-        r = server_api.send_state(url=url, title=title, hash_screen=hash_screen, screenshot=screen)
-        if r:
-            server_api.send_transaction(self.current_state, r)
+        state_id = server_api.send_state(url=url, title=title, hash_screen=hash_screen, screenshot=screen)
+        if state_id != self.current_state:
+            if self.current_state:
+                server_api.send_transaction(self.current_state, state_id, action_type)
+            self.current_state = state_id
             self.__count += 1
             print("=" * 50)
             print("Count States", self.__count)
             print("=" * 50)
-            self.current_state = r
             return True
         else:
             return False
@@ -59,6 +60,7 @@ class Bot(object):
         self.elements = Elements(self.driver)
         self.states = States()
         self.registry = registry
+        self.counter_network = 0
 
     def setup(self):
         # открываем первую страницу
@@ -76,10 +78,14 @@ class Bot(object):
         errors = self.driver.get_log('browser')
         return [e for e in errors if "favicon.ico" not in e["message"]]
 
-    def get_network(self):
+    def wait_loading(self):
         """получение траффика"""
 
-        self.driver.get_log('performance')
+        logs = self.driver.get_log('performance')
+        # TODO смотрим есть ли
+        # TODO выкидываем websocket
+        # TODO считаем loading finished
+        # TODO добавляем в счетчик количество завершенных запросов
 
     def add_state(self):
         """"""
@@ -88,8 +94,10 @@ class Bot(object):
         screen = self.driver.get_screenshot_as_base64()
         hash_screen = hashlib.md5(screen.encode()).hexdigest()
         errors = self.get_errors()
-        requests_count = self.get_network()
-        self.states.add_state(url, title, hash_screen, screen, errors)
+        # TODO количество запросов считываем тут
+        # network =
+        # requests_count = self.get_network()
+        return self.states.add_state(url, title, hash_screen, screen, "click", errors)
 
     def auth(self, login, password):
         auth = {"jsonrpc": "2.0", "protocol": 4, "method": "САП.Authenticate", "id": 1,
@@ -113,6 +121,7 @@ class Bot(object):
         sub_index = 0
 
         while True:
+            # TODO записать нулевое состояние (взять дефолтную картинку)
             time.sleep(3)
             # пройтись по списку, открыть страницы
             item = self.elements.top_item.item(self.registry)
@@ -247,7 +256,7 @@ class Bot(object):
         counter = 0
         negative = 0
         set_elements = set()
-        findNewState = False
+        find_new_state = False
         while negative < 25:
             count = self.elements.controls.count_elements()
             index = random.randint(0, count)
@@ -259,13 +268,14 @@ class Bot(object):
                 if size['height'] * size['width'] > 255:
                     if item.click():
                         # TODO новые окна!!!
+                        # TODO wait_loading
                         counter += 1
                         negative = 0
                         time.sleep(1)
                         if self.add_state():
-                            findNewState = True
+                            find_new_state = True
                         if counter > 10:
-                            return findNewState
+                            return find_new_state
                         else:
                             continue
             negative += 1

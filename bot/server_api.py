@@ -1,6 +1,5 @@
 import requests
 import config
-import random
 
 
 def send_state(url, title, hash_screen, screenshot, has_bug=None):
@@ -8,10 +7,12 @@ def send_state(url, title, hash_screen, screenshot, has_bug=None):
     if has_bug:
         body["has_bug"] = has_bug
     response = requests.post(config.server_url + "/state", json=body)
-    return random.choice([False, 1,2,3,4,5,6])
+    _id = response.json()
+    return int(_id)
 
 
-def send_transaction(id_old, id_new):
-    body = {}
+def send_transaction(source, target, action_type):
+    body = dict(source=source, target=target, type=action_type)
     response = requests.post(config.server_url, json=body)
-    return True
+    if response.status_code != 200:
+        print("Сервер ответил не 200")

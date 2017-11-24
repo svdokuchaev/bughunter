@@ -6,4 +6,4 @@ password = 'Демо123'
 wait_element = 3
 highlight_action = True
 debug = False
-server_url = "http://autotest-proxy1:5556"
+server_url = "http://localhost:5556"
