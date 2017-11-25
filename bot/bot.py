@@ -77,11 +77,12 @@ class Bot(object):
 
     def get_errors(self):
         """получение ошибок"""
-        errors = self.driver.get_log('browser')
-        if len([e for e in errors if "favicon.ico" not in e["message"]]):
-            return True
-        else:
-            return self.elements.error_txt.is_displayed or self.elements.error_2_txt.is_displayed
+        # errors = self.driver.get_log('browser')
+        # if len([e for e in errors if "favicon.ico" not in e["message"]]):
+        #     return True
+        # else:
+        #     return self.elements.error_txt.is_displayed or self.elements.error_2_txt.is_displayed
+        return self.elements.error_txt.is_displayed or self.elements.error_2_txt.is_displayed
 
     def wait_loading(self):
         """получение траффика"""
