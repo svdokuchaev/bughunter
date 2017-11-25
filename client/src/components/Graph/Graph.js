@@ -6,21 +6,22 @@ import Popup from '../../components/Popup';
 class Graph extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {title: "shit", text: "AAAAAAAAAAAA", hidden: true, states: {}};
+    this.state = {title: "shit", text: "AAAAAAAAAAAA", screenshot: "", hidden: true, states: {}};
   }
   onPopupClose(hidden) {
     this.setState({hidden: true});
   }
   render() {
-    const { title, text, hidden } = this.state;
-    const items = this.state.states.nodes && this.state.states.nodes.slice(0, 10).map(node => {
+    const { title, text, screenshot, hidden } = this.state;
+    const items = this.state.states.nodes && this.state.states.nodes.filter(node => node.has_bug/* || node.id % 147 == 0*/)
+      .map(node => {
        return <div className={s.nav_box} key={node.id}>
                <h3 className={s.nav_box__title}>{node.title}</h3>
                <div className={s.nav_box__text}>{node.url}</div>
-               <div><img className={s.nav_box__image} src="https://placeimg.com/1000/1000/any" /></div>
+               <div><img className={s.nav_box__image} src={"data:image/png;base64," + node.screenshot} /></div>
              </div>
     });
-    const nodesCount = this.state.states.nodes && this.state.states.nodes.length;
+    const nodesCount = this.state.states.nodes ? this.state.states.nodes.length : 0;
 
     return(
       <div>
@@ -60,7 +61,7 @@ class Graph extends React.Component {
               <div className={s.graphView}>
                 <svg width="2000" height="2000"></svg>
               </div>
-              <Popup title={title} text={text} hidden={hidden} onPopupClose={this.onPopupClose.bind(this)} />
+              <Popup title={title} text={text} hidden={hidden} screenshot={screenshot} onPopupClose={this.onPopupClose.bind(this)} />
             </div>
           </section>
         </div>
@@ -92,8 +93,23 @@ class Graph extends React.Component {
 
     //d3.json("states.json", function(error, graph) {
       //if (error) throw error;
-
-      this.setState({states: graph});
+      var promises = [];
+      graph.nodes.filter(node => node.has_bug).forEach(function(node) {
+        promises.push(new Promise(function(resolve, reject) {
+          fetch('http://10.76.178.67:5556/state?id=' + node.id).then(function(response) {
+            var contentType = response.headers.get("content-type");
+            if(contentType && contentType.includes("application/json")) {
+              return response.json();
+            }
+          }).then(function(a) {
+            node.screenshot = a.screenshot;
+            resolve();
+          })
+        }))
+      });
+      Promise.all(promises).then(function() {
+        this.setState({states: graph});
+      }.bind(this));
 
       var groups = Array.from(new Set(graph.nodes.map((itemNode) => itemNode.url))),
           nodes = graph.nodes.map((itemNode) => { itemNode.group = (groups.indexOf(itemNode.url) + 1); return itemNode; }),
@@ -102,9 +118,9 @@ class Graph extends React.Component {
           bilinks = [],
           k = Math.sqrt(nodes.length / (width * height));
 
-          console.log(nodes);
+          //console.log(nodes);
 
-          console.log(groups);
+          //console.log(groups);
 
           var manyBody =
                         d3
@@ -113,30 +129,32 @@ class Graph extends React.Component {
                             return -500 * k;
                           });
 
-          simulation.force("link", d3.forceLink().distance(function (node) {
+          simulation.force("link", d3.forceLink()
+          .id(function (d) {return d.id;})
+          .distance(function (node) {
                 //if (node.source.url === node.target.url) {
                 //   return 0.05;
                 //} else {
                   return 100;
-                // }
-              }).strength(0.9))
+              }).strength(0.5))
               .force("charge", manyBody)
               // .force("gravity", function () { return -1 * k; })
               .force("center", d3.forceCenter(width / 2, height / 2));
 
-      links.forEach(function(link) {
-        var s = link.source = nodeById.get(link.source),
-            t = link.target = nodeById.get(link.target),
-            i = {}; // intermediate node
-        nodes.push(i);
-        links.push({source: s, target: i}, {source: i, target: t});
-        bilinks.push([s, i, t]);
-      });
+      // links.forEach(function(link) {
+      //   var s = link.source = nodeById.get(link.source),
+      //       t = link.target = nodeById.get(link.target),
+      //       i = {}; // intermediate node
+      //   nodes.push(i);
+      //   links.push({source: s, target: i}, {source: i, target: t});
+      // });
 
       var link = svg.selectAll(".link")
-        .data(bilinks)
-        .enter().append("path")
-          .attr("class", this.graph.dataset.link);
+        .data(links)
+        .enter().append("line")
+        .attr("class", this.graph.dataset.link)
+        .attr("stroke-width", function(d) { return 3; });
+
 
       var getId = (id) => { return 'http://10.76.178.67:5556/state?id=' + id };
 
@@ -148,14 +166,36 @@ class Graph extends React.Component {
           .attr("fill", function(d) { return color(d.url); })
           .on("click", function (node) {
             var self = this;
-            fetch(getId(node.id)).then(function (response) {
-              var contentType = response.headers.get("content-type");
-              if(contentType && contentType.includes("application/json")) {
-                return response.json();
-              }
-            }).then(function (a) {
-              self.setState({ title: a.title, text: a.url, hidden: false });
-            })
+            var promises = [];
+            var newState = {};
+            promises.push(new Promise(function(resolve, reject) {
+              fetch(getId(node.id)).then(function (response) {
+                var contentType = response.headers.get("content-type");
+                if(contentType && contentType.includes("application/json")) {
+                  return response.json();
+                }
+              }).then(function (a) {
+                newState.title = a.title;
+                newState.text = a.url;
+                newState.hidden = false;
+                resolve();
+              })
+            }));
+            promises.push(new Promise(function(resolve, reject) {
+              fetch('http://10.76.178.67:5556/state?id=' + node.id).then(function(response) {
+                var contentType = response.headers.get("content-type");
+                if(contentType && contentType.includes("application/json")) {
+                  return response.json();
+                }
+              }).then(function(a) {
+                newState.screenshot = a.screenshot;
+                resolve();
+              })
+            }));
+            Promise.all(promises).then(function() {
+              //console.log(newState);
+              self.setState(newState);
+            }.bind(this));
           }.bind(this))
           /*.call(d3.drag()
               .on("start", dragstarted)
@@ -172,41 +212,57 @@ class Graph extends React.Component {
       simulation.force("link")
           .links(links);
 
+
+
+
+    /*d3.interval(function() {
+
+      var node = {
+        id: nodes.length + 1,
+        title: 'Some random',
+        url: 'http://dumbfuck.com',
+        group: 1,
+        has_bug: false
+      };
+
+
+      nodes.push(node); // Re-add c.
+      links.push({source: nodes[nodes.length - 2].id, target: node.id, key: 0}); // Re-add b-c.
+      restart();
+    }.bind(this), 2000);*/
+
+
+    function restart() {
+
+      // Apply the general update pattern to the nodes.
+      node = node.data(nodes, function(d) { return d.id;});
+      node.exit().remove();
+      node = node.enter().append("circle").attr("fill", function(d) { return color(d.id); }).attr("r", 8).merge(node);
+
+      // Apply the general update pattern to the links.
+      link = link.data(links, function(d) { return d.source.id + "-" + d.target.id; });
+      link.exit().remove();
+      link = link.enter().append("line").merge(link);
+
+      // Update and restart the simulation.
+      simulation.nodes(nodes);
+      simulation.force("link").links(links);
+      simulation.alpha(0.3).restart();
+    }
+
+
       function ticked() {
-        link.attr("d", positionLink);
-        node.attr("transform", positionNode);
-      }
+        link
+              .attr("x1", function(d) { return d.source.x; })
+              .attr("y1", function(d) { return d.source.y; })
+              .attr("x2", function(d) { return d.target.x; })
+              .attr("y2", function(d) { return d.target.y; });
 
-      d3.interval(function() {
-        var node = {
-          "id": nodes.length,
-          "url": "Что угодно",
-          "title": "TT RS",
-          "has_bug": null
-        };
-        nodes.push(node); // Re-add c.
-        links.push([nodes[nodes.length - 1], links[links.length], node]); // Re-add b-c.
-        //links.push({source: c, target: a}); // Re-add c-a.
-        restart();
-      }, 2000, d3.now() + 1000);
-
-      function restart() {
-
-        node = node.data(nodes, function(d) { return d.id;});
-        node.exit().remove();
-        node = node.enter().append("circle").attr("fill", function(d) { return color(d.id); }).attr("r", 8).merge(node);
-
-        link = link.data(links, function(d) {
-          //console.log(d, d[0], d[0].id, d[0].url);
-          //if(d[0]) debugger;
-           return (d[0]) ? d[0].id + "-" + d[2].id : d.source.id + "-" + d.target.id;
-         });
-        link.exit().remove();
-        link = link.enter().append("line").merge(link);
-
-        simulation.nodes(nodes);
-        simulation.force("link").links(links);
-        simulation.alpha(1).restart();
+          node
+              .attr("cx", function(d) { return d.x; })
+              .attr("cy", function(d) { return d.y; });
+        // link.attr("d", positionLink);
+        // node.attr("transform", positionNode);
       }
 
     }.bind(this));
