@@ -11,6 +11,7 @@ def send_state(url, title, hash_screen, screenshot, has_bug=None):
         _id = response.json()
         return int(_id)
     except Exception as error:
+        print("sent_state error")
         print(error)
 
 
@@ -21,4 +22,5 @@ def send_transaction(source, target, action_type):
         if response.status_code != 200:
             print("Сервер ответил не 200")
     except Exception as error:
+        print("send_transaction error")
         print(error)

@@ -6,4 +6,5 @@ password = 'Демо123'
 wait_element = 3
 highlight_action = True
 debug = False
-server_url = "http://localhost:5556"
+server_url = "http://10.76.178.67:5556"
+# server_url = "http://localhost:5556"

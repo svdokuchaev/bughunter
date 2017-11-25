@@ -81,11 +81,24 @@ class Bot(object):
     def wait_loading(self):
         """получение траффика"""
 
-        logs = self.driver.get_log('performance')
         # TODO смотрим есть ли
         # TODO выкидываем websocket
         # TODO считаем loading finished
         # TODO добавляем в счетчик количество завершенных запросов
+        logs = self.driver.get_log('performance')
+        if len(logs):
+            # l1=[]
+            # for index in logs:
+            #    l1.append(index)
+            # i=len(logs)
+            count = 0
+            for i in range(len(logs) - 1, -1, -1):
+                if logs[i]["message"]["message"]["method"] == "Network.loadingFinished":
+                    count += 1
+                elif logs[i]["message"]["message"]["method"] == "Network.webSocketCreated":
+                    logs.pop(i)
+
+        self.counter_network += count
 
     def add_state(self):
         """"""
@@ -269,6 +282,7 @@ class Bot(object):
                     if item.click():
                         # TODO новые окна!!!
                         # TODO wait_loading
+                        self.wait_loading()
                         counter += 1
                         negative = 0
                         time.sleep(1)
@@ -294,4 +308,8 @@ def run_bot(registry):
 
 if __name__ == '__main__':
     import sys
-    run_bot(int(sys.argv[1]))
+    if len(sys.argv) == 1:
+        registry = 1
+    else:
+        registry = int(sys.argv[1])
+    run_bot(registry)
