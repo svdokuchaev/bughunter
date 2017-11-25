@@ -20,6 +20,7 @@ class Graph extends React.Component {
                <div><img className={s.nav_box__image} src="https://placeimg.com/1000/1000/any" /></div>
              </div>
     });
+    const nodesCount = this.state.states.nodes && this.state.states.nodes.length;
 
     return(
       <div>
@@ -42,6 +43,7 @@ class Graph extends React.Component {
             <div className={s.container}>
               <header>
                 <h2>Graph</h2>
+                <h2 id="nodesCount">{nodesCount} nodes</h2>
               </header>
               <p>Vitae natoque dictum etiam semper magnis enim feugiat convallis convallis
               egestas rhoncus ridiculus in quis risus amet curabitur tempor orci penatibus.
@@ -153,10 +155,10 @@ class Graph extends React.Component {
               self.setState({ title: a.title, text: a.url, hidden: false });
             })
           }.bind(this))
-          .call(d3.drag()
+          /*.call(d3.drag()
               .on("start", dragstarted)
               .on("drag", dragged)
-              .on("end", dragended));
+              .on("end", dragended));*/
 
       node.append("title")
           .text(function(d) { return d.url; });
