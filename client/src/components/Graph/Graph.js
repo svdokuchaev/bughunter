@@ -125,35 +125,17 @@ class Graph extends React.Component {
 
           var manyBody =
                         d3
-<<<<<<< HEAD
                           .forceManyBody();
-                          //.strength(function () {
-                            //return -500 * k;
-                          //});
-=======
-                          .forceManyBody()
-                          .strength(function () {
-                            return -300 * k;
-                          });
->>>>>>> 1fd77cb05b749395fd7dbd8964edd3f415eb1793
 
           simulation.force("link", d3.forceLink()
-          .id(function (d) { return d.id;}))
+          .id(function (d) { return d.id;})
           .distance(function (node) {
-<<<<<<< HEAD
                 if (node.source.url === node.target.url) {
                    return 0.05;
                 } else {
                   return 100;
-              })//.strength(0.5))
-=======
-                //if (node.source.url === node.target.url) {
-                //   return 0.05;
-                //} else {
-                  return 50;
-                // }
-              }).strength(0.9))
->>>>>>> 1fd77cb05b749395fd7dbd8964edd3f415eb1793
+              }}))
+              //.strength(0.5))
               .force("charge", manyBody)
               // .force("gravity", function () { return -1 * k; })
               .force("center", d3.forceCenter(width / 2, height / 2));
@@ -248,7 +230,6 @@ class Graph extends React.Component {
       restart();
     }.bind(this), 2000);*/
 
-<<<<<<< HEAD
     var ioY = io('http://10.76.178.67:5556');
     ioY.on("connect", function(socket) {
       ioY.on('transition', function(data) {
@@ -258,8 +239,6 @@ class Graph extends React.Component {
         restart();
       });
     });
-=======
->>>>>>> 1fd77cb05b749395fd7dbd8964edd3f415eb1793
 
     function restart() {
 
