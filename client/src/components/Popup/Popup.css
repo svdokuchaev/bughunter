@@ -24,7 +24,9 @@
   padding: 30px;
   background: #fff;
   border-radius: 5px;
-  width: 30%;
+  width: 40%;
+  height: 85%;
+  overflow: auto;
   position: relative;
   transition: all 5s ease-in-out;
 }

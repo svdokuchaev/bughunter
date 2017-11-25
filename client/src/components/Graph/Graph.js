@@ -57,7 +57,9 @@ class Graph extends React.Component {
               data-node={s.node}
               ref={(graph) => { this.graph = graph; }}
             >
-              <svg width="2000" height="2000"></svg>
+              <div className={s.graphView}>
+                <svg width="2000" height="2000"></svg>
+              </div>
               <Popup title={title} text={text} hidden={hidden} onPopupClose={this.onPopupClose.bind(this)} />
             </div>
           </section>
