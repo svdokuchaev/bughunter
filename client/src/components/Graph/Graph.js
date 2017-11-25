@@ -6,7 +6,7 @@ import Popup from '../../components/Popup';
 class Graph extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {title: "shit", text: "AAAAAAAAAAAA", screenshot: "", hidden: true, states: {}};
+    this.state = {title: "shit", text: "AAAAAAAAAAAA", screenshot: "", hidden: true, states: {}, stat: {}};
   }
   onPopupClose(hidden) {
     this.setState({hidden: true});
@@ -43,8 +43,13 @@ class Graph extends React.Component {
           <section id="portfolio" className={s.two}>
             <div className={s.container}>
               <header>
-                <h2>Stat</h2>
-                <h2 id="nodesCount">{nodesCount} nodes</h2>
+                <h2>Statistics</h2>
+                <div className={s.stat}>
+                  <h2 id="botsCount">Bots: {this.state.stat.bots}</h2>
+                  <h2 id="statesCount">States: {this.state.stat.states}</h2>
+                  <h2 id="edgesCount">Edges: {this.state.stat.edges}</h2>
+                  <h2 id="bugsCount">Bugs: {this.state.stat.bugs}</h2>
+                </div>
               </header>
               <p>Vitae natoque dictum etiam semper magnis enim feugiat convallis convallis
               egestas rhoncus ridiculus in quis risus amet curabitur tempor orci penatibus.
@@ -76,12 +81,24 @@ class Graph extends React.Component {
         radius = 10,
         height = +svg.attr("height");
 
+
+
    var simulation = d3.forceSimulation();
 
    //SOCKET IO
    console.log("SOCKET IO is here", io);
 
     var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+
+    fetch('http://10.76.178.67:5556/stats').then(function(response) {
+      var contentType = response.headers.get("content-type");
+      if(contentType && contentType.includes("application/json")) {
+        return response.json();
+      }
+    }).then(function(a) {
+      this.setState({stat: a})
+    }.bind(this));
 
     fetch('http://10.76.178.67:5556/network').then(function (response) {
       var contentType = response.headers.get("content-type");

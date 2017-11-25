@@ -35,6 +35,10 @@
   zoom: 0.7;
 }
 
+.stat{
+  font-size: 10px;
+}
+
 .newsDesc {
   h1,
   h2,
