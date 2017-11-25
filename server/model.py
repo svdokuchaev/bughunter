@@ -18,8 +18,9 @@ class State(Base):
     has_bug = Column(Boolean)
     http_requests = Column(String)
     state_hash = Column(String)
+    request_count = Column(Integer)
 
-    def __init__(self, url, title, screenshot, console, has_bug, http_requests, state_hash, id=None):
+    def __init__(self, url, title, screenshot, console, has_bug, http_requests, state_hash, req_count, id=None):
         self.id = id
         self.state_hash = state_hash
         self.url = url
@@ -28,6 +29,7 @@ class State(Base):
         self.console = console
         self.has_bug = has_bug
         self.http_requests = http_requests
+        self.http_requests = req_count
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) if type(getattr(self, c.name)) != bytes else\
@@ -68,6 +70,22 @@ class Transition(Base):
     def as_dict(self):
         return {c.name: getattr(self, c.name) if type(getattr(self, c.name)) != bytes else\
                getattr(self, c.name).decode('utf-8') for c in self.__table__.columns}
+
+class Bot(Base):
+    __tablename__ = 'bot'
+
+    id = Column(Integer, primary_key=True)
+    state_id = Column(Integer)
+    start_time = Column(Integer)
+    states_count = Column(Integer)
+    bugs_count = Column(Integer)
+
+    def __init__(self, start_time, states_count, bugs_count, id=None, state_id=None):
+        self.id = id;
+        self.state_id = state_id;
+        self.start_time = start_time;
+        self.states_count = states_count;
+        self.bugs_count = bugs_count;
 
 if __name__ == '__main__':
     engine = create_engine('sqlite:///network.db')
