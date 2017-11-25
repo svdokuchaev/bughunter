@@ -24,6 +24,7 @@ class Elements:
         self.head_title_item = Element(driver, '.navigation-nav__HeadTitle')
         self.tabs = ElementsList(driver, '[data-component="SBIS3.CONTROLS.TabButtons"] .controls-TabButton')
         self.controls = ElementsList(driver, '[data-component^="SBIS3.CONTROLS"]')
+        self.input_controls = ElementsList(driver, '[data-component^="SBIS3.CONTROLS"] input')
         self.error_txt = Element(driver, '.ws-smp-header')
         self.error_2_txt = Element(driver, '.controls-SubmitPopup__message')
 
@@ -137,7 +138,7 @@ class Bot(object):
         sid = r.cookies.get("sid")
         cps = r.cookies.get("CpsUserId")
         self.driver.add_cookie({'name': 'sid', 'value': sid, 'path': '/', 'secure': False})
-        self.driver.add_cookie({'name': 'CpsUserId', 'valu e': cps, 'path': '/', 'secure': False})
+        self.driver.add_cookie({'name': 'CpsUserId', 'value': cps, 'path': '/', 'secure': False})
 
     def kill(self):
         self.server_api.send_stop()
@@ -283,6 +284,57 @@ class Bot(object):
         set_elements = set()
         find_new_state = False
         while negative < 25:
+
+            # for value in [self.elements.controls, self.elements.input_controls]:
+            #     count = value.count_elements()
+            #     index = random.randint(0, count)
+            #     item = self.elements.input_controls.item(index)
+            #     hash_elm = item.hash()
+            #     if hash_elm not in set_elements:
+            #         set_elements.add(hash_elm)
+            #         size = item.size
+            #         if size['height'] * size['width'] > 255:
+            #             s = ""
+            #             for i in range(10):
+            #                 s += random.randint(ord("А"), ord("я"))
+            #             if item.type_in("test"):
+            #                 self.wait_loading()
+            #                 counter += 1
+            #                 negative = 0
+            #                 time.sleep(1)
+            #                 if self.add_state():
+            #                     find_new_state = True
+            #                 if counter > 10:
+            #                     return find_new_state
+            #                 else:
+            #                     continue
+            #
+            #
+            #
+            #
+            # count = self.elements.input_controls.count_elements()
+            # index = random.randint(0, count)
+            # item = self.elements.input_controls.item(index)
+            # hash_elm = item.hash()
+            # if hash_elm not in set_elements:
+            #     set_elements.add(hash_elm)
+            #     size = item.size
+            #     if size['height'] * size['width'] > 255:
+            #         s = ""
+            #         for i in range(10):
+            #             s += random.randint(ord("А"), ord("я"))
+            #         if item.type_in("test"):
+            #             self.wait_loading()
+            #             counter += 1
+            #             negative = 0
+            #             time.sleep(1)
+            #             if self.add_state():
+            #                 find_new_state = True
+            #             if counter > 10:
+            #                 return find_new_state
+            #             else:
+            #                 continue
+
             count = self.elements.controls.count_elements()
             index = random.randint(0, count)
             item = self.elements.controls.item(index)
@@ -309,13 +361,13 @@ class Bot(object):
 
 def run_bot(registry):
     bot = Bot(registry)
-    try:
-        bot.setup()
-        bot.move()
-    except Exception as error:
-        print(error)
-    finally:
-        bot.kill()
+    # try:
+    bot.setup()
+    bot.move()
+    # except Exception as error:
+    #     print(error)
+    # finally:
+    #     bot.kill()
 
 if __name__ == '__main__':
     import sys

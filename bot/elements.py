@@ -164,7 +164,8 @@ class Element:
 
             time.sleep(0.05)
             if time.time() > end_time:
-                print("Не удалось дождаться появления элемента " + self.name_output())
+                if config.debug:
+                    print("Не удалось дождаться появления элемента " + self.name_output())
                 break
         return webelements if return_list else webelements[0]
 

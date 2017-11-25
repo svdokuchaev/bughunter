@@ -20,14 +20,14 @@ class ServerApi(object):
 
     @staticmethod
     def send_start():
-        response = requests.post("/bot")
+        response = requests.post(config.server_url + "/bot")
         try:
-            return int(response.content.decode())
+            return response.content.decode().strip("\n")
         except Exception:
             raise Exception("Ошибка регистрации бота")
 
     def send_stop(self):
-        response = requests.delete("/bot", headers=self.headers)
+        response = requests.delete(config.server_url + "/bot", headers=self.headers)
         if response.status_code != 200:
             print("delete /bot error")
             print(response.content.decode())
