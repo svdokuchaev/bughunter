@@ -13,29 +13,7 @@ from elements import Element, ElementsList, wait
 import config
 import random
 import hashlib
-import server_api
-
-
-class States:
-
-    def __init__(self):
-        self.__count = 0
-        self.current_state = None
-
-    def add_state(self, url, title, hash_screen, screen, action_type=None, errors=None):
-
-        state_id = server_api.send_state(url=url, title=title, hash_screen=hash_screen, screenshot=screen)
-        if state_id and state_id != self.current_state:
-            if self.current_state:
-                server_api.send_transaction(self.current_state, state_id, action_type)
-            self.current_state = state_id
-            self.__count += 1
-            print("=" * 50)
-            print("Count States", self.__count)
-            print("=" * 50)
-            return True
-        else:
-            return False
+from server_api import ServerApi
 
 
 class Elements:
@@ -46,6 +24,8 @@ class Elements:
         self.head_title_item = Element(driver, '.navigation-nav__HeadTitle')
         self.tabs = ElementsList(driver, '[data-component="SBIS3.CONTROLS.TabButtons"] .controls-TabButton')
         self.controls = ElementsList(driver, '[data-component^="SBIS3.CONTROLS"]')
+        self.error_txt = Element(driver, '.ws-smp-header')
+        self.error_2_txt = Element(driver, '.controls-SubmitPopup__message')
 
 
 class Bot(object):
@@ -54,16 +34,25 @@ class Bot(object):
         capabilities = webdriver.DesiredCapabilities.CHROME
         capabilities['loggingPrefs'] = {'browser': "SEVERE", 'performance': 'ALL'}
         self.driver = webdriver.Chrome(desired_capabilities = capabilities)
-        self.driver.maximize_window()
+        try:
+            self.driver.maximize_window()
+        except Exception:
+            pass  # for mac os
         self.start_url = None
         self.items = defaultdict(list)
         self.elements = Elements(self.driver)
-        self.states = States()
+        self.count_states = 0
+        self.current_state = None
         self.registry = registry
         self.counter_network = 0
+        self.server_api = ServerApi()
 
     def setup(self):
         # открываем первую страницу
+        with open("first_state.jpg", 'rb') as img:
+            img_byte = img.read()
+            img_hash = hashlib.md5(img_byte).hexdigest()
+        self.add_state(img_hash=img_hash)
         self.open(config.site)
         self.auth(config.login, config.password)
         self.open(config.site)
@@ -74,48 +63,59 @@ class Bot(object):
         self.driver.get(url)
 
     def get_errors(self):
-        """"""
+        """получение ошибок"""
         errors = self.driver.get_log('browser')
-        return [e for e in errors if "favicon.ico" not in e["message"]]
+        if len([e for e in errors if "favicon.ico" not in e["message"]]):
+            return True
+        else:
+            return self.elements.error_txt.is_displayed or self.elements.error_2_txt.is_displayed
 
     def wait_loading(self):
         """получение траффика"""
 
-        # TODO смотрим есть ли
-        # TODO выкидываем websocket
-        # TODO считаем loading finished
-        # TODO добавляем в счетчик количество завершенных запросов
         s = time.time()
         while True:
             logs = self.driver.get_log('performance')
             if len(logs):
-                # l1=[]
-                # for index in logs:
-                #    l1.append(index)
-                # i=len(logs)
                 count = 0
                 for i in range(len(logs) - 1, -1, -1):
-
                     if logs[i]["message"].find("Network.loadingFinished")!=-1:
                         count += 1
                     elif logs[i]["message"].find("Network.webSocketCreated")!= -1:
                         logs.pop(i)
-
-            self.counter_network += count
+                self.counter_network += count
             if not len(logs) or time.time() - s > 20:
                 break
 
-    def add_state(self):
-        """"""
+    def add_state(self, action="click", img_hash=None):
+        """сохранение состояния"""
+
         url = self.driver.current_url
         title = self.driver.title
         screen = self.driver.get_screenshot_as_base64()
-        hash_screen = hashlib.md5(screen.encode()).hexdigest()
-        errors = self.get_errors()
-        # TODO количество запросов считываем тут
-        # network =
-        # requests_count = self.get_network()
-        return self.states.add_state(url, title, hash_screen, screen, "click", errors)
+        if not hash:
+            hash_screen = hashlib.md5(screen.encode()).hexdigest()
+        else:
+            hash_screen = img_hash
+        has_bug = self.get_errors()
+
+        state_id = self.server_api.send_state(
+            url=url, title=title, hash_screen=hash_screen, screenshot=screen,
+            request_count=self.counter_network, has_bug=has_bug
+        )
+        if state_id and state_id != self.current_state:
+
+            if self.current_state:
+                self.server_api.send_transaction(self.current_state, state_id, action)
+            self.current_state = state_id
+            self.count_states += 1
+            self.counter_network = 0
+            print("=" * 50)
+            print("Count States", self.count_states)
+            print("=" * 50)
+            return True
+        else:
+            return False
 
     def auth(self, login, password):
         auth = {"jsonrpc": "2.0", "protocol": 4, "method": "САП.Authenticate", "id": 1,
@@ -286,7 +286,6 @@ class Bot(object):
                 if size['height'] * size['width'] > 255:
                     if item.click():
                         # TODO новые окна!!!
-                        # TODO wait_loading
                         self.wait_loading()
                         counter += 1
                         negative = 0
