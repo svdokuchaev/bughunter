@@ -11,7 +11,7 @@ class BotRunner(bot.Bot):
         count = self.elements.top_item.count_elements()
         assert count > 1, "Проблемы с загрузкой панели навигации"
         process = []
-        for i in range(1, 6):  # count
+        for i in range(1, 5):  # count
             p = subprocess.Popen(["python", "bot.py", str(i)])
             process.append(p)
             time.sleep(0.2)

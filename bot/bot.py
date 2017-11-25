@@ -1,3 +1,4 @@
+# encoding=utf-8
 """
 # TODO
 1) Число запросов при переходе к состоянию
@@ -60,14 +61,15 @@ class Bot(object):
         with open("first_state.jpg", 'rb') as img:
             img_byte = img.read()
             img_hash = hashlib.md5(img_byte).hexdigest()
-        self.add_state(img_hash=img_hash)
         self.open(config.site)
         self.auth(config.login, config.password)
         self.open(config.site)
+        self.add_state(img_hash=img_hash)
         time.sleep(2)
         self.start_url = self.driver.current_url
 
     def open(self, url):
+        print("Открываем url: " + url)
         self.driver.get(url)
 
     def get_errors(self):
@@ -323,13 +325,13 @@ class Bot(object):
 
 def run_bot(registry):
     bot = Bot(registry)
-    # try:
-    bot.setup()
-    bot.move()
+    try:
+        bot.setup()
+        bot.move()
     # except Exception as error:
     #     print(error)
-    # finally:
-    #     bot.kill()
+    finally:
+        bot.kill()
 
 if __name__ == '__main__':
     import sys
