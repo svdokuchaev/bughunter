@@ -9,7 +9,7 @@ class Graph extends React.Component {
     this.state = {title: "shit", text: "AAAAAAAAAAAA", screenshot: "", hidden: true, states: {}};
   }
   onPopupClose(hidden) {
-    this.setState({hidden: true});
+    this.setState({hidden: true, screenshot: ""});
   }
   render() {
     const { title, text, screenshot, hidden } = this.state;
@@ -17,7 +17,6 @@ class Graph extends React.Component {
       .map(node => {
        return <div className={s.nav_box} key={node.id}>
                <h3 className={s.nav_box__title}>{node.title}</h3>
-               <div className={s.nav_box__text}>{node.url}</div>
                <div><img className={s.nav_box__image} src={"data:image/png;base64," + node.screenshot} /></div>
              </div>
     });
@@ -103,10 +102,11 @@ class Graph extends React.Component {
               return response.json();
             }
           }).then(function(a) {
+            console.log(node.has_bug);
             node.screenshot = a.screenshot;
             resolve();
           })
-        }))
+        }));
       });
       Promise.all(promises).then(function() {
         this.setState({states: graph});
@@ -233,12 +233,46 @@ class Graph extends React.Component {
     var ioY = io('http://10.76.178.67:5556');
     ioY.on("connect", function(socket) {
       ioY.on('transition', function(data) {
-        console.log(data);
-        nodes.push(data.state[0]);
-        links.push(data.transition[0]);
-        restart();
+        //console.log(data);
+        //nodes.push(data.state_target[0]);
+        updateBugList(data.state_target[0]);
+        /*links.push(data.transition[0]);
+        restart();*/
       });
     });
+
+    function updateBugList(node) {
+      if (!node.has_bug) return;
+      var promises = [];
+      promises.push(new Promise(function(resolve, reject) {
+        fetch('http://10.76.178.67:5556/state?id=' + node.id).then(function(response) {
+          var contentType = response.headers.get("content-type");
+          if(contentType && contentType.includes("application/json")) {
+            return response.json();
+          }
+        }).then(function(a) {
+          node.screenshot = a.screenshot;
+          resolve();
+        })
+      }));
+      Promise.all(promises).then(function() {
+        var nav = document.getElementsByTagName('nav')[0];
+        var title = document.createElement('h3');
+        title.className = s.nav_box__title;
+        title.innerHTML = node.title;
+        var img = document.createElement('img');
+        img.className = s.nav_box__image;
+        img.setAttribute('src', 'data:image/png;base64,' + node.screenshot);
+        var imgDiv = document.createElement('div');
+        imgDiv.appendChild(img);
+        var div = document.createElement('div');
+        div.className = s.nav_box;
+        div.setAttribute('key', node.id);
+        div.appendChild(title);
+        div.appendChild(imgDiv);
+        nav.insertBefore(div, nav.firstChild);
+      });
+    }
 
     function restart() {
 

@@ -35,6 +35,10 @@
   zoom: 0.7;
 }
 
+.stat{
+  font-size: 15px;
+}
+
 .newsDesc {
   h1,
   h2,
@@ -1648,8 +1652,9 @@
 		}
 
 	h2 {
-		font-size: 2em;
+		font-size: 2.5em;
 		letter-spacing: -1px;
+    text-align: right;
 	}
 
 		h2.alt {
@@ -1661,7 +1666,7 @@
 			}
 
 	h3 {
-		font-size: 1.5em;
+		font-size: 2em;
 	}
 
 	header {
