@@ -312,7 +312,7 @@ class Bot(object):
             if hash_elm not in set_elements:
                 set_elements.add(hash_elm)
                 size = item.size
-                if size['height'] * size['width'] > 255 and element.get_attribute('name') != "UserNameLinkButton":
+                if size['height'] * size['width'] > 255 and item.get_attribute('name') != "UserNameLinkButton":
                     if element == self.elements.input_controls:
                         s = ""
                         for i in range(10):
