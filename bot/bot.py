@@ -85,20 +85,25 @@ class Bot(object):
         # TODO выкидываем websocket
         # TODO считаем loading finished
         # TODO добавляем в счетчик количество завершенных запросов
-        logs = self.driver.get_log('performance')
-        if len(logs):
-            # l1=[]
-            # for index in logs:
-            #    l1.append(index)
-            # i=len(logs)
-            count = 0
-            for i in range(len(logs) - 1, -1, -1):
-                if logs[i]["message"]["message"]["method"] == "Network.loadingFinished":
-                    count += 1
-                elif logs[i]["message"]["message"]["method"] == "Network.webSocketCreated":
-                    logs.pop(i)
+        s = time.time()
+        while True:
+            logs = self.driver.get_log('performance')
+            if len(logs):
+                # l1=[]
+                # for index in logs:
+                #    l1.append(index)
+                # i=len(logs)
+                count = 0
+                for i in range(len(logs) - 1, -1, -1):
 
-        self.counter_network += count
+                    if logs[i]["message"].find("Network.loadingFinished")!=-1:
+                        count += 1
+                    elif logs[i]["message"].find("Network.webSocketCreated")!= -1:
+                        logs.pop(i)
+
+            self.counter_network += count
+            if not len(logs) or time.time() - s > 20:
+                break
 
     def add_state(self):
         """"""
