@@ -134,7 +134,7 @@ class Graph extends React.Component {
         .enter().append("path")
           .attr("class", this.graph.dataset.link);
 
-          var getId = (id) => { return 'http://10.76.178.67:5556/state?id=' + id };
+      var getId = (id) => { return 'http://10.76.178.67:5556/state?id=' + id };
 
       var node = svg.selectAll(".node")
         .data(nodes.filter(function(d) { return d.id; }))
@@ -172,6 +172,39 @@ class Graph extends React.Component {
         link.attr("d", positionLink);
         node.attr("transform", positionNode);
       }
+
+      d3.interval(function() {
+        var node = {
+          "id": nodes.length,
+          "url": "Что угодно",
+          "title": "TT RS",
+          "has_bug": null
+        };
+        nodes.push(node); // Re-add c.
+        links.push([nodes[nodes.length - 1], links[links.length], node]); // Re-add b-c.
+        //links.push({source: c, target: a}); // Re-add c-a.
+        restart();
+      }, 2000, d3.now() + 1000);
+
+      function restart() {
+
+        node = node.data(nodes, function(d) { return d.id;});
+        node.exit().remove();
+        node = node.enter().append("circle").attr("fill", function(d) { return color(d.id); }).attr("r", 8).merge(node);
+
+        link = link.data(links, function(d) {
+          //console.log(d, d[0], d[0].id, d[0].url);
+          //if(d[0]) debugger;
+           return (d[0]) ? d[0].id + "-" + d[2].id : d.source.id + "-" + d.target.id;
+         });
+        link.exit().remove();
+        link = link.enter().append("line").merge(link);
+
+        simulation.nodes(nodes);
+        simulation.force("link").links(links);
+        simulation.alpha(1).restart();
+      }
+
     }.bind(this));
 
     function positionLink(d) {
