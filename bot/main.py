@@ -13,7 +13,7 @@ class BotRunner(bot.Bot):
         self.kill()
         assert count > 1, "Проблемы с загрузкой панели навигации"
         process = []
-        for i in range(6, 13):  # count
+        for i in range(1, 8):  # count
             p = subprocess.Popen(["python3", "bot.py", str(i)])
             process.append(p)
             time.sleep(0.2)
