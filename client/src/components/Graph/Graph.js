@@ -6,7 +6,7 @@ import Popup from '../../components/Popup';
 class Graph extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {title: "shit", text: "AAAAAAAAAAAA", screenshot: "", hidden: true, states: {}};
+    this.state = {title: "shit", text: "AAAAAAAAAAAA", screenshot: "", hidden: true, states: {}, stat: {}};
   }
   onPopupClose(hidden) {
     this.setState({hidden: true, screenshot: ""});
@@ -34,21 +34,8 @@ class Graph extends React.Component {
           </div>
         </div>
         <div className={s.main}>
-          <section id="top" className={[s.one, s.dark, s.cover].join(' ')}>
-            <div className={s.container}>
-                <h2 className={s.alt}><strong>BUGHUNTER</strong></h2>
-            </div>
-          </section>
           <section id="portfolio" className={s.two}>
             <div className={s.container}>
-              <header>
-                <h2>Stat</h2>
-                <h2 id="nodesCount">{nodesCount} nodes</h2>
-              </header>
-              <p>Vitae natoque dictum etiam semper magnis enim feugiat convallis convallis
-              egestas rhoncus ridiculus in quis risus amet curabitur tempor orci penatibus.
-              Tellus erat mauris ipsum fermentum etiam vivamus eget. Nunc nibh morbi quis
-              fusce hendrerit lacus ridiculus.</p>
             </div>
             <div
               id="graph"
@@ -59,6 +46,14 @@ class Graph extends React.Component {
               ref={(graph) => { this.graph = graph; }}
             >
               <div className={s.graphView}>
+                <header>
+                  <div className={s.stat}>
+                    <h2 className={s.stat__title} id="botsCount">Bots: {this.state.stat.bots}</h2>
+                    <h2 className={s.stat__title} id="statesCount">States: {this.state.stat.states}</h2>
+                    <h2 className={s.stat__title} id="edgesCount">Edges: {this.state.stat.edges}</h2>
+                    <h2 className={s.stat__title} id="bugsCount">Bugs: {this.state.stat.bugs}</h2>
+                  </div>
+                </header>
                 <svg width="6000" height="4000"></svg>
               </div>
               <Popup title={title} text={text} hidden={hidden} screenshot={screenshot} onPopupClose={this.onPopupClose.bind(this)} />
@@ -83,6 +78,15 @@ class Graph extends React.Component {
 
     var color = d3.scaleOrdinal(d3.schemeCategory20);
 
+    fetch('http://10.76.178.67:5556/stats').then(function(response) {
+      var contentType = response.headers.get("content-type");
+      if(contentType && contentType.includes("application/json")) {
+        return response.json();
+      }
+    }).then(function(a) {
+      this.setState({stat: a})
+    }.bind(this));
+
     fetch('http://10.76.178.67:5556/network').then(function (response) {
       var contentType = response.headers.get("content-type");
       if(contentType && contentType.includes("application/json")) {
@@ -103,7 +107,6 @@ class Graph extends React.Component {
               return response.json();
             }
           }).then(function(a) {
-            console.log(node.has_bug);
             node.screenshot = a.screenshot;
             resolve();
           })
@@ -126,16 +129,11 @@ class Graph extends React.Component {
 
           var manyBody =
                         d3
-                          .forceManyBody();
+                          .forceManyBody().strength(-4);
 
           simulation.force("link", d3.forceLink()
           .id(function (d) { return d.id;})
-          .distance(function (node) {
-                if (node.source.url === node.target.url) {
-                   return 0.05;
-                } else {
-                  return 100;
-              }}))
+          .distance(3).strength(1).iterations(10))
               //.strength(0.5))
               .force("charge", manyBody)
               // .force("gravity", function () { return -1 * k; })
@@ -237,9 +235,15 @@ class Graph extends React.Component {
         updateBugList(data.state_target[0]);
         nodes.push(data.state_target[0]);
         links.push({source: data.state_source[0].id, target: data.state_target[0].id});
-        restart();
-      });
-    });
+        this.setState({stat: {
+          bots: this.state.stat.bots,
+          states: this.state.stat.states + 1,
+          edges: this.state.stat.edges + 1,
+          bugs: data.state_target[0].has_bugs ? this.state.stat.bugs + 1 : this.state.stat.bugs
+        }})
+        restart.call(this);
+      }.bind(this));
+    }.bind(this));
 
     function updateBugList(node) {
       if (!node.has_bug) return;
@@ -284,7 +288,8 @@ class Graph extends React.Component {
       // Apply the general update pattern to the links.
       link = link.data(links, function(d) { return d.source.id + "-" + d.target.id; });
       link.exit().remove();
-      link = link.enter().append("line").merge(link);
+      link = link.enter().append("line").attr("class", this.graph.dataset.link)
+      .attr("stroke-width", function(d) { return 3; }).merge(link);
 
       // Update and restart the simulation.
       simulation.nodes(nodes);

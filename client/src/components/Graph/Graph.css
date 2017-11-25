@@ -5,6 +5,15 @@
   margin: 20px;
 }
 
+::-webkit-scrollbar {
+    width: 0px;  /* remove scrollbar space */
+    background: transparent;  /* optional: just make scrollbar invisible */
+}
+/* optional: show position indicator in red */
+::-webkit-scrollbar-thumb {
+    background: #FF0000;
+}
+
 .node {
   stroke: #fff;
   stroke-width: 1.5px;
@@ -37,6 +46,14 @@
 
 .stat{
   font-size: 15px;
+}
+
+.stat__title {
+  font-size: 120px;
+  display: inline-block;
+  padding-right: 300px;
+  color: #000;
+    font-weight: bold;
 }
 
 .newsDesc {
@@ -2070,11 +2087,11 @@
 		color: #fff;
 		height: 100%;
 		left: 0;
-		overflow: auto;
+		overflow: scroll;
 		position: fixed;
 		text-align: right;
 		top: 0;
-		width: 375px;
+		width: 700px;
 	}
 
 		.header .top {
@@ -2146,6 +2163,7 @@
   .nav_box {
     padding: 20px;
     text-align: center;
+    padding-bottom: 60px;
   }
 
   .nav_box__title {

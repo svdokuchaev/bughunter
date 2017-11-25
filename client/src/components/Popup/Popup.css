@@ -24,8 +24,7 @@
   padding: 35px;
   background: #fff;
   border-radius: 5px;
-  width: 40%;
-  height: 85%;
+  width: 70%;
   overflow: auto;
   position: relative;
   transition: all 5s ease-in-out;
@@ -35,15 +34,15 @@
   margin-top: 0;
   color: #333;
   font-family: Tahoma, Arial, sans-serif;
-  font-size: 35px;
+  font-size: 85px;
   text-align: center;
 }
 .popup .close {
   position: absolute;
-  top: 5px;
-  right: 10px;
+  top: 20px;
+  right: 20px;
   transition: all 200ms;
-  font-size: 30px;
+  font-size: 90px;
   font-weight: bold;
   text-decoration: none;
   color: #333;
@@ -53,7 +52,7 @@
 }
 .popup .content {
   max-height: 30%;
-  font-size: 13px;
+  font-size: 50px;
   word-wrap: break-word;
 }
 .image {
