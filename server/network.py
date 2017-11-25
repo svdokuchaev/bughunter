@@ -130,7 +130,6 @@ class Network:
     def update_bot(self, bot_id, state_id, has_bug=None):
         """Обновление бота"""
         bot = self.get_bot(bot_id)
-        print(bot.id)
         bot.state_id = state_id
         bot.states_count += 1
         if (has_bug):

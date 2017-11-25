@@ -89,7 +89,7 @@ class StateApi(Resource):
         json_data = request.get_json(force=True)
         # TODO: возвращает id+перенос строки, нужно разобраться почему он добавляется
         bot_id = request.headers.get("bot_id")
-        state_id = net.add_state(int(bot_id),**json_data)
+        state_id = net.add_state(bot_id, **json_data)
         data = {
                 'url': json_data['url'],
                 'title': json_data['title'],
