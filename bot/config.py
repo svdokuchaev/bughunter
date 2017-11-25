@@ -10,7 +10,7 @@ debug = False
 os_p = platform.system()
 if os_p == "Linux":
     server_url = "http://10.76.178.67:5556"
-    grid_server = "http://test-selenium16:4444/wd/hub"
+    grid_server = "http://test-selenium65:4444/wd/hub"
 elif os_p == "Darwin":
     server_url = "http://10.76.178.67:5556"
     grid_server = ""
