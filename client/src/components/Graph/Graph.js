@@ -155,10 +155,10 @@ class Graph extends React.Component {
               self.setState({ title: a.title, text: a.url, hidden: false });
             })
           }.bind(this))
-          .call(d3.drag()
+          /*.call(d3.drag()
               .on("start", dragstarted)
               .on("drag", dragged)
-              .on("end", dragended));
+              .on("end", dragended));*/
 
       node.append("title")
           .text(function(d) { return d.url; });
