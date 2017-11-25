@@ -25,7 +25,7 @@ class States:
     def add_state(self, url, title, hash_screen, screen, action_type=None, errors=None):
 
         state_id = server_api.send_state(url=url, title=title, hash_screen=hash_screen, screenshot=screen)
-        if state_id != self.current_state:
+        if state_id and state_id != self.current_state:
             if self.current_state:
                 server_api.send_transaction(self.current_state, state_id, action_type)
             self.current_state = state_id
@@ -293,4 +293,5 @@ def run_bot(registry):
         bot.kill()
 
 if __name__ == '__main__':
-    run_bot(1)
+    import sys
+    run_bot(int(sys.argv[1]))
