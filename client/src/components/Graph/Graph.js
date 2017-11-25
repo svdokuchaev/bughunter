@@ -115,12 +115,12 @@ class Graph extends React.Component {
 
           simulation.force("link", d3.forceLink()
           .id(function (d) { return d.id;}))
-          //.distance(function (node) {
-                //if (node.source.url === node.target.url) {
-                //   return 0.05;
-                //} else {
-                  //return 100;
-              //}).strength(0.5))
+          .distance(function (node) {
+                if (node.source.url === node.target.url) {
+                   return 0.05;
+                } else {
+                  return 100;
+              })//.strength(0.5))
               .force("charge", manyBody)
               // .force("gravity", function () { return -1 * k; })
               .force("center", d3.forceCenter(width / 2, height / 2));
