@@ -52,10 +52,11 @@ class Graph extends React.Component {
               className={s.root}
               data-link={s.link}
               data-node={s.node}
+              data-error={s.circle_error}
               ref={(graph) => { this.graph = graph; }}
             >
               <div className={s.graphView}>
-                <svg width="2000" height="2000"></svg>
+                <svg width="6000" height="4000"></svg>
               </div>
               <Popup title={title} text={text} hidden={hidden} screenshot={screenshot} onPopupClose={this.onPopupClose.bind(this)} />
             </div>
@@ -168,9 +169,9 @@ class Graph extends React.Component {
       var node = svg.selectAll(".node")
         .data(nodes.filter(function(d) { return d.id; }))
         .enter().append("circle")
-          .attr("class", this.graph.dataset.node)
+          .attr("class", function (node) { if (node.has_bug) { return this.graph.dataset.node + ' ' + this.graph.dataset.error  } return this.graph.dataset.node; }.bind(this))
           .attr("r", radius)
-          .attr("fill", function(d) { return color(d.url); })
+          .attr("fill", function(d) {  return color(d.url); })
           .on("click", function (node) {
             var self = this;
             var promises = [];
@@ -241,10 +242,9 @@ class Graph extends React.Component {
     var ioY = io('http://10.76.178.67:5556');
     ioY.on("connect", function(socket) {
       ioY.on('transition', function(data) {
-        console.log(data);
-        nodes.push(data.state[0]);
-        links.push(data.transition[0]);
-        restart();
+       nodes.push(data.state_target[0]);
+       links.push({source: data.state_source[0].id, target: data.state_target[0].id});
+       restart();
       });
     });
 
@@ -275,8 +275,8 @@ class Graph extends React.Component {
               .attr("y2", function(d) { return d.target.y; });
 
           node
-              .attr("cx", function(d) { return d.x; })
-              .attr("cy", function(d) { return d.y; });
+              .attr("cx", function(d) { if (d.has_bug) { return d.x = Math.max(20, Math.min(width - 20, d.x));  } return d.x = Math.max(radius, Math.min(width - radius, d.x)); })
+              .attr("cy", function(d) { if (d.has_bug) { return d.y = Math.max(20, Math.min(width - 20, d.y));  } return d.y = Math.max(radius, Math.min(width - radius, d.y)); });
         // link.attr("d", positionLink);
         // node.attr("transform", positionNode);
       }

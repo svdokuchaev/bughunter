@@ -2031,6 +2031,25 @@
 			display: none;
 		}
 
+
+    .circle_error {
+      stroke: #000;
+      stroke-width: 10;
+      r: 20;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.2;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
 /* Header */
 
 	.header {
@@ -2137,7 +2156,7 @@
     font-size: 12px;
     text-align: center;
     word-wrap: break-word;
-    width: 275px;
+    width: 100%;
   }
 
   .nav_box__image {
