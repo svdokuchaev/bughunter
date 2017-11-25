@@ -15,10 +15,10 @@
 from flask import Flask, request, render_template
 from flask_restplus import Resource, Api, fields
 from flask_socketio import SocketIO, emit
+import time
 from flask_cors import CORS
 from network import Network
 import json
-import os
 
 app = Flask(__name__)
 CORS(app)
@@ -26,7 +26,7 @@ api = Api(app)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 net = Network('network.db')
-
+startserver = time.time();
 ns = api.namespace('todos', description='TODO operations')
 
 
@@ -92,8 +92,8 @@ class StateApi(Resource):
                 'title': json_data['title'],
                 'id': str(state_id)
         }
-        with app.app_context():
-            socketio.emit('state', json.dumps(data), broadcast=True)
+      #  with app.app_context():
+       #     socketio.emit('state', json.dumps(data), broadcast=True)
         return str(state_id)
 
 class TransitionApi(Resource):
@@ -111,12 +111,28 @@ class TransitionApi(Resource):
         """Добавление нового перехода"""
         json_data = request.get_json(force=True)
         transition_id = net.add_transition(**json_data)
+        json_input = {"transition": [json_data],"state": [net.get_state(json_data['target'])]}
         with app.app_context():
-            socketio.emit('transition', json_data, broadcast=True)
+            socketio.emit('transition', json_input, broadcast=True)
         return str(transition_id)
 
 
+class States(Resource):
+    def get(self):
+        """Статистика по ботам"""
+        json_input = {#'bots': len(net.get_bots_id()),
+                      'states': len(net.get_states_id()),
+                      'edges': len(net.get_edges_id()),
+                      'bugs': net.get_bugs_num(),
+                      'date':int(startserver),
+                     }
+        return json_input
+
+    #json_input = json.dumps({"transition": [json_data], "state": [net.get_state(json_data['target'])]})
+    #return pass
+
 api.add_resource(NetworkApi, '/network')
+api.add_resource(States, '/stats')
 api.add_resource(StateApi, '/state')
 api.add_resource(TransitionApi, '/transition')
 
@@ -128,6 +144,8 @@ def index():
     #     socketio.emit('test', 'Ali is OK', broadcast=True)
     return render_template('index.html')
 
+def on_aaa_response(*args):
+    print('on_aaa_response', args)
 
 @socketio.on('connect', namespace='/test')
 def test_connect(message):

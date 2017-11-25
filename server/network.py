@@ -73,39 +73,63 @@ class Network:
         state = State(url, title, screenshot, console, has_bug, http_requests, state_hash)
         self.session.add(state)
         self.session.commit()
-        self.session.refresh(state)
+
+        #self.session.refresh(state)
         return state.id
 
     def get_state(self, state_id=None, state_hash=None):
         """Возвращаем метаданные состояния по его идентификатору"""
         try:
+            DBSession = sessionmaker(bind=self.engine)
+            self.session = DBSession()
             if state_id:
+                self.session.close()
                 return self.session.query(State).filter(State.id == state_id).first().as_dict()
             elif state_hash:
+                self.session.close()
                 return self.session.query(State).filter(State.state_hash == state_hash).first().as_dict()
         except:
             return False
 
+    def get_bugs_num(self):
+        DBSession = sessionmaker(bind=self.engine)
+        self.session = DBSession()
+        num = self.session.query(State).filter(State.has_bug == True).count()
+        self.session.close()
+        return num
     def get_states_id(self):
+        DBSession = sessionmaker(bind=self.engine)
+        self.session = DBSession()
         states = self.session.query(State.id).all()
         states_ids = [id[0] for id in states]
+        self.session.close()
         return states_ids
 
     def get_edges_id(self):
+        DBSession = sessionmaker(bind=self.engine)
+        self.session = DBSession()
         edges = self.session.query(Transition.state_from_id, Transition.state_to_id).all()
-        # edges = [id[0] for id in edges]
+        # edges = [id
+        self.session.close()
         return edges
 
     def add_transition(self, source, target, action):
         """Добавляем новый переход"""
+        DBSession = sessionmaker(bind=self.engine)
+        self.session = DBSession()
         transition = Transition(source, target, action)
         self.session.add(transition)
         self.session.commit()
+        #self.session.refresh(state)
         return transition.id
 
     def get_transition(self, transition_id):
         """Возвращаем метаданные переходе по его идентификатору"""
-        return self.session.query(Transition).filter(Transition.id == transition_id).first().as_dict()
+        DBSession = sessionmaker(bind=self.engine)
+        self.session = DBSession()
+        dict = self.session.query(Transition).filter(Transition.id == transition_id).first().as_dict()
+        self.session.close()
+        return dict
 
     def shortest_path(self):
         """Выдаёт путь от одного состояния до другого"""
