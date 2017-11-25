@@ -6,7 +6,7 @@ import Popup from '../../components/Popup';
 class Graph extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {title: "shit", text: "AAAAAAAAAAAA", screenshot: "", hidden: true, states: {}, stat: {}};
+    this.state = {title: "shit", text: "AAAAAAAAAAAA", screenshot: "", hidden: true, states: {}};
   }
   onPopupClose(hidden) {
     this.setState({hidden: true, screenshot: ""});
@@ -34,17 +34,21 @@ class Graph extends React.Component {
           </div>
         </div>
         <div className={s.main}>
+          <section id="top" className={[s.one, s.dark, s.cover].join(' ')}>
+            <div className={s.container}>
+                <h2 className={s.alt}><strong>BUGHUNTER</strong></h2>
+            </div>
+          </section>
           <section id="portfolio" className={s.two}>
             <div className={s.container}>
               <header>
-                <h2>Statistics</h2>
-                <div className={s.stat}>
-                  <h2 id="botsCount">Bots: {this.state.stat.bots}</h2>
-                  <h2 id="statesCount">States: {this.state.stat.states}</h2>
-                  <h2 id="edgesCount">Edges: {this.state.stat.edges}</h2>
-                  <h2 id="bugsCount">Bugs: {this.state.stat.bugs}</h2>
-                </div>
+                <h2>Stat</h2>
+                <h2 id="nodesCount">{nodesCount} nodes</h2>
               </header>
+              <p>Vitae natoque dictum etiam semper magnis enim feugiat convallis convallis
+              egestas rhoncus ridiculus in quis risus amet curabitur tempor orci penatibus.
+              Tellus erat mauris ipsum fermentum etiam vivamus eget. Nunc nibh morbi quis
+              fusce hendrerit lacus ridiculus.</p>
             </div>
             <div
               id="graph"
@@ -71,24 +75,12 @@ class Graph extends React.Component {
         radius = 10,
         height = +svg.attr("height");
 
-
-
    var simulation = d3.forceSimulation();
 
    //SOCKET IO
    console.log("SOCKET IO is here", io);
 
     var color = d3.scaleOrdinal(d3.schemeCategory20);
-
-
-    fetch('http://10.76.178.67:5556/stats').then(function(response) {
-      var contentType = response.headers.get("content-type");
-      if(contentType && contentType.includes("application/json")) {
-        return response.json();
-      }
-    }).then(function(a) {
-      this.setState({stat: a})
-    }.bind(this));
 
     fetch('http://10.76.178.67:5556/network').then(function (response) {
       var contentType = response.headers.get("content-type");
@@ -183,6 +175,7 @@ class Graph extends React.Component {
                 }
               }).then(function (a) {
                 newState.title = a.title;
+                newState.text = a.url;
                 newState.hidden = false;
                 resolve();
               })
