@@ -43,12 +43,12 @@ class Network:
         for state in states:
             MG.add_node(state.id, url=state.url, title=state.title, has_bug=state.has_bug)
         MG.add_edges_from(self.get_edges_id())
-        pos = nx.circular_layout(MG)
+        # pos = nx.circular_layout(MG)
         # plt.figure(figsize=(40, 40))
         # nx.draw_networkx(MG, cmap=plt.get_cmap('jet'), node_color=[state.id for state in states])
         # plt.axis('equal')
         # plt.savefig('current_network.png')
-        # self.MG = MG
+        self.MG = MG
 
     def yaml(self):
         """Выгрузка данных о сети из БД в yaml"""
@@ -102,7 +102,7 @@ class Network:
     def add_transition(self, source, target, action):
         """Добавляем новый переход"""
         transition = Transition(source, target, action)
-        self.MG.add_edge_from(transition.id)
+        self.MG.add_edge(source, target)
         self.session.add(transition)
         self.session.commit()
         return transition.id
