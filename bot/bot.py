@@ -28,6 +28,7 @@ class Elements:
         self.input_controls = ElementsList(driver, '[data-component^="SBIS3.CONTROLS"] input')
         self.error_txt = Element(driver, '.ws-smp-header')
         self.error_2_txt = Element(driver, '.controls-SubmitPopup__message')
+        self.error_3_txt = Element(driver, '.error-page')
 
 
 class Bot(object):
@@ -82,7 +83,8 @@ class Bot(object):
         #     return True
         # else:
         #     return self.elements.error_txt.is_displayed or self.elements.error_2_txt.is_displayed
-        return self.elements.error_txt.is_displayed or self.elements.error_2_txt.is_displayed
+        res = self.elements.error_txt.is_displayed or self.elements.error_2_txt.is_displayed or self.elements.error_3_txt.is_displayed
+        return res
 
     def wait_loading(self):
         """получение траффика"""
@@ -146,7 +148,8 @@ class Bot(object):
         self.driver.add_cookie({'name': 'CpsUserId', 'value': cps, 'path': '/', 'secure': False})
 
     def kill(self):
-        self.server_api.send_stop()
+        if self.registry:
+            self.server_api.send_stop()
         self.driver.quit()
 
     def move(self):

@@ -36,10 +36,13 @@ def f(delay):
         current_time = time.time()
         current_bots_time = net.get_bots_time()
         print(current_bots_time)
+        current_bots_ids = net.get_bots_id
+        print(current_bots_ids)
         for i in range(len(current_bots_time)):
             print(i)
             if( (current_time - current_bots_time[i]) >= delay ):
-                net.delete_bot(i+1)
+                #net.delete_bot(int(current_bots_ids[i])+1)
+                print('del')
         time.sleep(2)
 
 def m():
@@ -182,9 +185,9 @@ def test_connect(message):
     emit('my response', {'data': 'Connected'})
 
 if __name__ == '__main__':
-#    p = Process(target=f, args=(10,))
+    # p = Process(target=f, args=(10,))
     p2 = Process(target=m)
-#    p.start()
+    # p.start()
     p2.start()
-#    p.join()
+    # p.join()
     p2.join()
