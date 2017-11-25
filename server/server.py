@@ -36,12 +36,12 @@ def f(delay):
         current_time = time.time()
         current_bots_time = net.get_bots_time()
         print(current_bots_time)
-        current_bots_ids = net.get_bots_id()
+        current_bots_ids = net.get_bots_id
         print(current_bots_ids)
         for i in range(len(current_bots_time)):
             print(i)
             if( (current_time - current_bots_time[i]) >= delay ):
-                net.delete_bot((current_bots_ids[i])+1)
+                #net.delete_bot(int(current_bots_ids[i])+1)
                 print('del')
         time.sleep(2)
 
@@ -131,8 +131,7 @@ class TransitionApi(Resource):
         """Добавление нового перехода"""
         json_data = request.get_json(force=True)
         transition_id = net.add_transition(**json_data)
-        json_input = {"transition": [json_data], "state_target": [net.get_state(json_data['target'])],
-                      "state_source": [net.get_state(json_data['source'])]}
+        json_input = {"transition": [json_data],"state": [net.get_state(json_data['target'])]}
         with app.app_context():
             socketio.emit('transition', json_input, broadcast=True)
         return str(transition_id)
@@ -186,9 +185,9 @@ def test_connect(message):
     emit('my response', {'data': 'Connected'})
 
 if __name__ == '__main__':
-    #p = Process(target=f, args=(10,))
+    # p = Process(target=f, args=(10,))
     p2 = Process(target=m)
-    #p.start()
+    # p.start()
     p2.start()
-    #p.join()
+    # p.join()
     p2.join()
