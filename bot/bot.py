@@ -133,13 +133,13 @@ class Bot(object):
         self.driver.add_cookie({'name': 'CpsUserId', 'value': cps, 'path': '/', 'secure': False})
 
     def kill(self):
+        self.server_api.send_stop()
         self.driver.quit()
 
     def move(self):
         sub_index = 0
 
         while True:
-            # TODO записать нулевое состояние (взять дефолтную картинку)
             time.sleep(3)
             # пройтись по списку, открыть страницы
             item = self.elements.top_item.item(self.registry)

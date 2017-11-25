@@ -26,6 +26,12 @@ class ServerApi(object):
         except Exception:
             raise Exception("Ошибка регистрации бота")
 
+    def send_stop(self):
+        response = requests.delete("/bot", headers=self.headers)
+        if response.status_code != 200:
+            print("delete /bot error")
+            print(response.content.decode())
+
     def send_state(self, url, title, hash_screen, screenshot, request_count, has_bug):
         try:
             body = {
