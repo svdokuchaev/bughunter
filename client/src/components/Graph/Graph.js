@@ -6,10 +6,10 @@ import Popup from '../../components/Popup';
 class Graph extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {title: "shit", text: "AAAAAAAAAAAA", screenshot: "", hidden: true, states: {}, stat: {}};
+    this.state = {title: "shit", text: "AAAAAAAAAAAA", screenshot: "", hidden: true, states: {}};
   }
   onPopupClose(hidden) {
-    this.setState({hidden: true});
+    this.setState({hidden: true, screenshot: ""});
   }
   render() {
     const { title, text, screenshot, hidden } = this.state;
@@ -17,7 +17,6 @@ class Graph extends React.Component {
       .map(node => {
        return <div className={s.nav_box} key={node.id}>
                <h3 className={s.nav_box__title}>{node.title}</h3>
-               <div className={s.nav_box__text}>{node.url}</div>
                <div><img className={s.nav_box__image} src={"data:image/png;base64," + node.screenshot} /></div>
              </div>
     });
@@ -35,17 +34,21 @@ class Graph extends React.Component {
           </div>
         </div>
         <div className={s.main}>
+          <section id="top" className={[s.one, s.dark, s.cover].join(' ')}>
+            <div className={s.container}>
+                <h2 className={s.alt}><strong>BUGHUNTER</strong></h2>
+            </div>
+          </section>
           <section id="portfolio" className={s.two}>
             <div className={s.container}>
               <header>
-                <h2>Statistics</h2>
-                <div className={s.stat}>
-                  <h2 id="botsCount">Bots: {this.state.stat.bots}</h2>
-                  <h2 id="statesCount">States: {this.state.stat.states}</h2>
-                  <h2 id="edgesCount">Edges: {this.state.stat.edges}</h2>
-                  <h2 id="bugsCount">Bugs: {this.state.stat.bugs}</h2>
-                </div>
+                <h2>Stat</h2>
+                <h2 id="nodesCount">{nodesCount} nodes</h2>
               </header>
+              <p>Vitae natoque dictum etiam semper magnis enim feugiat convallis convallis
+              egestas rhoncus ridiculus in quis risus amet curabitur tempor orci penatibus.
+              Tellus erat mauris ipsum fermentum etiam vivamus eget. Nunc nibh morbi quis
+              fusce hendrerit lacus ridiculus.</p>
             </div>
             <div
               id="graph"
@@ -73,24 +76,12 @@ class Graph extends React.Component {
         radius = 10,
         height = +svg.attr("height");
 
-
-
    var simulation = d3.forceSimulation();
 
    //SOCKET IO
    console.log("SOCKET IO is here", io);
 
     var color = d3.scaleOrdinal(d3.schemeCategory20);
-
-
-    fetch('http://10.76.178.67:5556/stats').then(function(response) {
-      var contentType = response.headers.get("content-type");
-      if(contentType && contentType.includes("application/json")) {
-        return response.json();
-      }
-    }).then(function(a) {
-      this.setState({stat: a})
-    }.bind(this));
 
     fetch('http://10.76.178.67:5556/network').then(function (response) {
       var contentType = response.headers.get("content-type");
@@ -112,10 +103,11 @@ class Graph extends React.Component {
               return response.json();
             }
           }).then(function(a) {
+            console.log(node.has_bug);
             node.screenshot = a.screenshot;
             resolve();
           })
-        }))
+        }));
       });
       Promise.all(promises).then(function() {
         this.setState({states: graph});
@@ -242,11 +234,45 @@ class Graph extends React.Component {
     var ioY = io('http://10.76.178.67:5556');
     ioY.on("connect", function(socket) {
       ioY.on('transition', function(data) {
-       nodes.push(data.state_target[0]);
-       links.push({source: data.state_source[0].id, target: data.state_target[0].id});
-       restart();
+        updateBugList(data.state_target[0]);
+        nodes.push(data.state_target[0]);
+        links.push({source: data.state_source[0].id, target: data.state_target[0].id});
+        restart();
       });
     });
+
+    function updateBugList(node) {
+      if (!node.has_bug) return;
+      var promises = [];
+      promises.push(new Promise(function(resolve, reject) {
+        fetch('http://10.76.178.67:5556/state?id=' + node.id).then(function(response) {
+          var contentType = response.headers.get("content-type");
+          if(contentType && contentType.includes("application/json")) {
+            return response.json();
+          }
+        }).then(function(a) {
+          node.screenshot = a.screenshot;
+          resolve();
+        })
+      }));
+      Promise.all(promises).then(function() {
+        var nav = document.getElementsByTagName('nav')[0];
+        var title = document.createElement('h3');
+        title.className = s.nav_box__title;
+        title.innerHTML = node.title;
+        var img = document.createElement('img');
+        img.className = s.nav_box__image;
+        img.setAttribute('src', 'data:image/png;base64,' + node.screenshot);
+        var imgDiv = document.createElement('div');
+        imgDiv.appendChild(img);
+        var div = document.createElement('div');
+        div.className = s.nav_box;
+        div.setAttribute('key', node.id);
+        div.appendChild(title);
+        div.appendChild(imgDiv);
+        nav.insertBefore(div, nav.firstChild);
+      });
+    }
 
     function restart() {
 
