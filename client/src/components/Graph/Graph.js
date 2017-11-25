@@ -142,20 +142,17 @@ class Graph extends React.Component {
 
           var manyBody =
                         d3
-                          .forceManyBody()
-                          .strength(function () {
-                            return -300 * k;
-                          });
+                          .forceManyBody();
 
           simulation.force("link", d3.forceLink()
-          .id(function (d) {return d.id;})
+          .id(function (d) { return d.id;})
           .distance(function (node) {
-                //if (node.source.url === node.target.url) {
-                //   return 0.05;
-                //} else {
-                  return 50;
-                // }
-              }).strength(0.9))
+                if (node.source.url === node.target.url) {
+                   return 0.05;
+                } else {
+                  return 100;
+              }}))
+              //.strength(0.5))
               .force("charge", manyBody)
               // .force("gravity", function () { return -1 * k; })
               .force("center", d3.forceCenter(width / 2, height / 2));
@@ -250,13 +247,22 @@ class Graph extends React.Component {
       restart();
     }.bind(this), 2000);*/
 
+    var ioY = io('http://10.76.178.67:5556');
+    ioY.on("connect", function(socket) {
+      ioY.on('transition', function(data) {
+        console.log(data);
+        nodes.push(data.state[0]);
+        links.push(data.transition[0]);
+        restart();
+      });
+    });
 
     function restart() {
 
       // Apply the general update pattern to the nodes.
       node = node.data(nodes, function(d) { return d.id;});
       node.exit().remove();
-      node = node.enter().append("circle").attr("fill", function(d) { return color(d.id); }).attr("r", 8).merge(node);
+      node = node.enter().append("circle").attr("fill", function(d) { return color(d.url); }).attr("r", 8).merge(node);
 
       // Apply the general update pattern to the links.
       link = link.data(links, function(d) { return d.source.id + "-" + d.target.id; });

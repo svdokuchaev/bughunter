@@ -19,6 +19,7 @@ import time
 from flask_cors import CORS
 from network import Network
 import json
+from multiprocessing import Process
 
 app = Flask(__name__)
 CORS(app)
@@ -30,6 +31,22 @@ startserver = time.time();
 ns = api.namespace('todos', description='TODO operations')
 net.delete_all_bots();
 
+def f(delay):
+    while True:
+        current_time = time.time()
+        current_bots_time = net.get_bots_time()
+        print(current_bots_time)
+        current_bots_ids = net.get_bots_id()
+        print(current_bots_ids)
+        for i in range(len(current_bots_time)):
+            print(i)
+            if( (current_time - current_bots_time[i]) >= delay ):
+                net.delete_bot((current_bots_ids[i])+1)
+                print('del')
+        time.sleep(2)
+
+def m():
+    socketio.run(app, debug=True, port=5556, host='0.0.0.0')
 
 class NetworkApi(Resource):
 
@@ -114,13 +131,14 @@ class TransitionApi(Resource):
         """Добавление нового перехода"""
         json_data = request.get_json(force=True)
         transition_id = net.add_transition(**json_data)
-        json_input = {"transition": [json_data],"state": [net.get_state(json_data['target'])]}
+        json_input = {"transition": [json_data], "state_target": [net.get_state(json_data['target'])],
+                      "state_source": [net.get_state(json_data['source'])]}
         with app.app_context():
             socketio.emit('transition', json_input, broadcast=True)
         return str(transition_id)
 
 
-class States(Resource):
+class Stats(Resource):
     def get(self):
         """Статистика по ботам"""
         json_input = {'bots': len(net.get_bots_id()),
@@ -147,7 +165,7 @@ class BotApi(Resource):
         net.delete_bot(int(bot_id))
 
 api.add_resource(NetworkApi, '/network')
-api.add_resource(States, '/stats')
+api.add_resource(Stats, '/stats')
 api.add_resource(StateApi, '/state')
 api.add_resource(TransitionApi, '/transition')
 api.add_resource(BotApi, '/bot')
@@ -168,4 +186,9 @@ def test_connect(message):
     emit('my response', {'data': 'Connected'})
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, port=5556, host='0.0.0.0')
+    #p = Process(target=f, args=(10,))
+    p2 = Process(target=m)
+    #p.start()
+    p2.start()
+    #p.join()
+    p2.join()

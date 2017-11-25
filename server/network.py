@@ -44,11 +44,11 @@ class Network:
             MG.add_node(state.id, url=state.url, title=state.title, has_bug=state.has_bug)
         MG.add_edges_from(self.get_edges_id())
         pos = nx.circular_layout(MG)
-        plt.figure(figsize=(40, 40))
-        nx.draw_networkx(MG, cmap=plt.get_cmap('jet'), node_color=[state.id for state in states])
-        plt.axis('equal')
-        plt.savefig('current_network.png')
-        self.MG = MG
+        # plt.figure(figsize=(40, 40))
+        # nx.draw_networkx(MG, cmap=plt.get_cmap('jet'), node_color=[state.id for state in states])
+        # plt.axis('equal')
+        # plt.savefig('current_network.png')
+        # self.MG = MG
 
     def yaml(self):
         """Выгрузка данных о сети из БД в yaml"""
@@ -69,9 +69,13 @@ class Network:
         if self.get_state(state_hash=state_hash):
             return exists_state['id']
         state = State(url, title, screenshot, console, has_bug, http_requests, state_hash, request_count)
-        self.update_bot(bot_id, state.id, has_bug)
+        self.MG.add_node(state.id, url=state.url, title=state.title, has_bug=state.has_bug)
         self.session.add(state)
         self.session.commit()
+        self.session.refresh(state)
+        print(state.id)
+        if(bot_id):
+            self.update_bot(bot_id, state.id, has_bug)
         return state.id
 
     def get_state(self, state_id=None, state_hash=None):
@@ -98,6 +102,7 @@ class Network:
     def add_transition(self, source, target, action):
         """Добавляем новый переход"""
         transition = Transition(source, target, action)
+        self.MG.add_edge_from(transition.id)
         self.session.add(transition)
         self.session.commit()
         return transition.id
@@ -131,21 +136,24 @@ class Network:
         bot = Bot(start_time, 0, 0)
         self.session.add(bot)
         self.session.commit()
-        #self.session.refresh(bot)
         return bot.id
 
     def get_bot(self, bot_id):
         """Находим бота по id"""
         return self.session.query(Bot).filter(Bot.id == bot_id).first()
 
-    def update_bot(self, bot_id, state_id, has_bug=None):
+    def update_bot(self, bot_idstr, state_id, has_bug=None):
         """Обновление бота"""
+        bot_id = int(bot_idstr)
         bot = self.get_bot(bot_id)
-        bot.state_id = state_id
-        bot.states_count += 1
-        if (has_bug):
-            bot.bugs_count += 1
-        self.session.commit()
+        if bot:
+            bot.state_id = state_id
+            bot.states_count += 1
+            if (has_bug):
+                bot.bugs_count += 1
+            self.session.commit()
+        else:
+            return 0
 
     def delete_bot(self, bot_id):
         """Удаление бота по id"""
@@ -162,6 +170,12 @@ class Network:
         bots = self.session.query(Bot.id).all()
         bots_ids = [id[0] for id in bots]
         return bots_ids
+
+    def get_bots_time(self):
+        """Возвращает список времени активных ботов"""
+        bots = self.session.query(Bot.start_time).all()
+        bots_time = [start_time[0] for start_time in bots]
+        return bots_time
 
 
 if __name__ == '__main__':
