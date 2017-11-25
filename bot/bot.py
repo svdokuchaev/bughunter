@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 # TODO
 1) Число запросов при переходе к состоянию
@@ -35,13 +36,15 @@ class Bot(object):
         capabilities = webdriver.DesiredCapabilities.CHROME
 
         capabilities['loggingPrefs'] = {'browser': "SEVERE", 'performance': 'ALL'}
-        self.driver = webdriver.Chrome(desired_capabilities = capabilities)
+
         if config.grid_server:
             capabilities['version'] = "DEFAULT"
             self.driver = webdriver.Remote(
                 command_executor=config.grid_server,
                 desired_capabilities=capabilities
             )
+        else:
+            self.driver = webdriver.Chrome(desired_capabilities=capabilities)
         try:
             self.driver.maximize_window()
         except Exception:
@@ -53,14 +56,16 @@ class Bot(object):
         self.current_state = None
         self.registry = registry
         self.counter_network = 0
-        self.server_api = ServerApi()
+        if self.registry:
+            self.server_api = ServerApi()
 
     def setup(self):
         # открываем первую страницу
         with open("first_state.jpg", 'rb') as img:
             img_byte = img.read()
             img_hash = hashlib.md5(img_byte).hexdigest()
-        self.add_state(img_hash=img_hash)
+        if self.registry:
+            self.add_state(img_hash=img_hash)
         self.open(config.site)
         self.auth(config.login, config.password)
         self.open(config.site)
@@ -282,8 +287,11 @@ class Bot(object):
     def get_element(self):
         element = random.choice([self.elements.input_controls, self.elements.controls])
         count = element.count_elements()
-        index = random.randint(1, count)
-        return element, index
+        if count:
+            index = random.randint(1, count)
+            return element, index
+        else:
+            return None, 0
 
     def walk_in_registry(self):
         self.wait_loading()
@@ -293,6 +301,9 @@ class Bot(object):
         find_new_state = False
         while negative < 25:
             element, index = self.get_element()
+            if not element:
+                negative += 1
+                continue
             item = element.item(index)
             hash_elm = item.hash()
             if hash_elm not in set_elements:
