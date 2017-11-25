@@ -136,14 +136,9 @@ class Graph extends React.Component {
                 //if (node.source.url === node.target.url) {
                 //   return 0.05;
                 //} else {
-<<<<<<< HEAD
                   return 50;
                 // }
               }).strength(0.9))
-=======
-                  return 100;
-              }).strength(0.5))
->>>>>>> f3e734af0523303c89a2d0f5b14b9d096adf1809
               .force("charge", manyBody)
               // .force("gravity", function () { return -1 * k; })
               .force("center", d3.forceCenter(width / 2, height / 2));
