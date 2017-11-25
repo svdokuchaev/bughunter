@@ -43,7 +43,7 @@ class Graph extends React.Component {
           <section id="portfolio" className={s.two}>
             <div className={s.container}>
               <header>
-                <h2>Graph</h2>
+                <h2>Stat</h2>
                 <h2 id="nodesCount">{nodesCount} nodes</h2>
               </header>
               <p>Vitae natoque dictum etiam semper magnis enim feugiat convallis convallis
@@ -68,6 +68,7 @@ class Graph extends React.Component {
       </div>
     );
   }
+
 
   componentDidMount() {
     var svg = d3.select("svg"),
@@ -126,7 +127,7 @@ class Graph extends React.Component {
                         d3
                           .forceManyBody()
                           .strength(function () {
-                            return -500 * k;
+                            return -300 * k;
                           });
 
           simulation.force("link", d3.forceLink()
@@ -135,8 +136,14 @@ class Graph extends React.Component {
                 //if (node.source.url === node.target.url) {
                 //   return 0.05;
                 //} else {
+<<<<<<< HEAD
+                  return 50;
+                // }
+              }).strength(0.9))
+=======
                   return 100;
               }).strength(0.5))
+>>>>>>> f3e734af0523303c89a2d0f5b14b9d096adf1809
               .force("charge", manyBody)
               // .force("gravity", function () { return -1 * k; })
               .force("center", d3.forceCenter(width / 2, height / 2));
