@@ -28,6 +28,7 @@ socketio = SocketIO(app)
 net = Network('network.db')
 startserver = time.time();
 ns = api.namespace('todos', description='TODO operations')
+net.delete_all_bots();
 
 
 class NetworkApi(Resource):
@@ -81,6 +82,7 @@ class StateApi(Resource):
         'http_requests': 'HTTP запросы в формате HAR',
         'state_hash': 'хэш страницы из скриншота',
         'has_bug': 'имеется ли в этом состоянии ошибка',
+        'request_count': 'колличество реквестов',
     })
     @api.response(200, 'id')
     def post(self):
@@ -120,7 +122,7 @@ class TransitionApi(Resource):
 class States(Resource):
     def get(self):
         """Статистика по ботам"""
-        json_input = {#'bots': len(net.get_bots_id()),
+        json_input = {'bots': len(net.get_bots_id()),
                       'states': len(net.get_states_id()),
                       'edges': len(net.get_edges_id()),
                       'bugs': net.get_bugs_num(),
@@ -131,10 +133,23 @@ class States(Resource):
     #json_input = json.dumps({"transition": [json_data], "state": [net.get_state(json_data['target'])]})
     #return pass
 
+class BotApi(Resource):
+    def post(self):
+        """Добавление бота"""
+        bot = net.add_bot()
+        return bot
+
+    @api.doc(params={'bot_id': 'id удаляемого бота'})
+    def delete(self):
+        """Удаление бота"""
+        bot_id = request.headers.get("bot_id")
+        net.delete_bot(int(bot_id))
+
 api.add_resource(NetworkApi, '/network')
 api.add_resource(States, '/stats')
 api.add_resource(StateApi, '/state')
 api.add_resource(TransitionApi, '/transition')
+api.add_resource(BotApi, '/bot')
 
 
 @app.route('/index.html')
