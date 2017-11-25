@@ -1,12 +1,12 @@
 # _*_ coding = utf-8 _*_
 
-from model import State, Element, Transition, Base
+from model import State, Element, Transition, Bot, Base
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 import networkx as nx
 from networkx.readwrite import json_graph
+import time
 import matplotlib.pyplot as plt
-
 
 class _State:
     """Класс, описывающий состояние страницы"""
@@ -37,18 +37,7 @@ class Network:
         self.engine = create_engine('sqlite:///%s' % db, connect_args={'check_same_thread': False})
         Base.metadata.bind = self.engine
         DBSession = sessionmaker(bind=self.engine)
-        self.session = DBSession()
-        MG = nx.MultiGraph()
-        states = self.session.query(State).all()
-        for state in states:
-            MG.add_node(state.id, url=state.url, title=state.title, has_bug=state.has_bug)
-        MG.add_edges_from(self.get_edges_id())
-        pos = nx.circular_layout(MG)
-        plt.figure(figsize=(40, 40))
-        nx.draw_networkx(MG, cmap=plt.get_cmap('jet'), node_color=[state.id for state in states])
-        plt.axis('equal')
-        plt.savefig('current_network.png')
-        self.MG = MG
+        self.session = scoped_session(DBSession)
 
     def yaml(self):
         """Выгрузка данных о сети из БД в yaml"""
@@ -58,11 +47,9 @@ class Network:
         """Выгрузка данных о сети из БД в json"""
         return json_graph.node_link_data(self.MG)
 
-    def add_state(self, url, title=None, screenshot=None, state_hash=None, console=None, http_requests=None, has_bug=None):
+    def add_state(self, bot_id, url, title=None, screenshot=None, state_hash=None, console=None, http_requests=None, request_count=None, has_bug=None):
         """Добавляем новое состояние.
         Здесь же идёт и изменение объекта в памяти и все записи в БД"""
-        DBSession = sessionmaker(bind=self.engine)
-        self.session = DBSession()
         if screenshot == '':
             screenshot = b''
         if isinstance(screenshot, str):
@@ -70,65 +57,43 @@ class Network:
         exists_state = self.get_state(state_hash=state_hash)
         if self.get_state(state_hash=state_hash):
             return exists_state['id']
-        state = State(url, title, screenshot, console, has_bug, http_requests, state_hash)
+        state = State(url, title, screenshot, console, has_bug, http_requests, state_hash, request_count)
+        self.update_bot(bot_id, state.id, has_bug)
         self.session.add(state)
         self.session.commit()
-
-        #self.session.refresh(state)
         return state.id
 
     def get_state(self, state_id=None, state_hash=None):
         """Возвращаем метаданные состояния по его идентификатору"""
         try:
-            DBSession = sessionmaker(bind=self.engine)
-            self.session = DBSession()
             if state_id:
-                self.session.close()
                 return self.session.query(State).filter(State.id == state_id).first().as_dict()
             elif state_hash:
-                self.session.close()
                 return self.session.query(State).filter(State.state_hash == state_hash).first().as_dict()
         except:
             return False
 
     def get_bugs_num(self):
-        DBSession = sessionmaker(bind=self.engine)
-        self.session = DBSession()
-        num = self.session.query(State).filter(State.has_bug == True).count()
-        self.session.close()
-        return num
+        return self.session.query(State).filter(State.has_bug == True).count()
+
     def get_states_id(self):
-        DBSession = sessionmaker(bind=self.engine)
-        self.session = DBSession()
         states = self.session.query(State.id).all()
         states_ids = [id[0] for id in states]
-        self.session.close()
         return states_ids
 
     def get_edges_id(self):
-        DBSession = sessionmaker(bind=self.engine)
-        self.session = DBSession()
-        edges = self.session.query(Transition.state_from_id, Transition.state_to_id).all()
-        # edges = [id
-        self.session.close()
-        return edges
+        return self.session.query(Transition.state_from_id, Transition.state_to_id).all()
 
     def add_transition(self, source, target, action):
         """Добавляем новый переход"""
-        DBSession = sessionmaker(bind=self.engine)
-        self.session = DBSession()
         transition = Transition(source, target, action)
         self.session.add(transition)
         self.session.commit()
-        #self.session.refresh(state)
         return transition.id
 
     def get_transition(self, transition_id):
         """Возвращаем метаданные переходе по его идентификатору"""
-        DBSession = sessionmaker(bind=self.engine)
-        self.session = DBSession()
         dict = self.session.query(Transition).filter(Transition.id == transition_id).first().as_dict()
-        self.session.close()
         return dict
 
     def shortest_path(self):
@@ -148,6 +113,45 @@ class Network:
         3. Ошибки в http запросах
         4. Окно с сообщением об ошибке"""
         pass
+
+    def add_bot(self):
+        """Добавляем/обновляем существующего бота"""
+        start_time = int(time.time())
+        bot = Bot(start_time, 0, 0)
+        self.session.add(bot)
+        self.session.commit()
+        #self.session.refresh(bot)
+        return bot.id
+
+    def get_bot(self, bot_id):
+        """Находим бота по id"""
+        return self.session.query(Bot).filter(Bot.id == bot_id).first()
+
+    def update_bot(self, bot_id, state_id, has_bug=False):
+        """Обновление бота"""
+        bot = self.get_bot(bot_id)
+        bot.state_id = state_id
+        bot.states_count += 1
+        if (has_bug):
+            bot.bugs_count += 1
+        self.session.commit()
+
+    def delete_bot(self, bot_id):
+        """Удаление бота по id"""
+        self.session.query(Bot).filter(Bot.id == bot_id).delete()
+        self.session.commit()
+
+    def delete_all_bots(self):
+        """Удаление всех ботов"""
+        self.session.query(Bot).delete()
+        self.session.commit()
+
+    def get_bots_id(self):
+        """Возвращает список id активных ботов"""
+        bots = self.session.query(Bot.id).all()
+        bots_ids = [id[0] for id in bots]
+        return bots_ids
+
 
 if __name__ == '__main__':
     net = Network('network.db')
