@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import platform
 # general
 site = 'https://fix-online.sbis.ru'
