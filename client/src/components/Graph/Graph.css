@@ -2129,7 +2129,10 @@
   }
 
   .nav_box__text {
-
+    font-size: 10px;
+    text-align: center;
+    word-wrap: break-word;
+    width: 275px;
   }
 
   .nav_box__image {
