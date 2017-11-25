@@ -6,21 +6,22 @@ import Popup from '../../components/Popup';
 class Graph extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {title: "shit", text: "AAAAAAAAAAAA", hidden: true, states: {}};
+    this.state = {title: "shit", text: "AAAAAAAAAAAA", screenshot: "", hidden: true, states: {}};
   }
   onPopupClose(hidden) {
     this.setState({hidden: true});
   }
   render() {
-    const { title, text, hidden } = this.state;
-    const items = this.state.states.nodes && this.state.states.nodes.slice(0, 10).map(node => {
+    const { title, text, screenshot, hidden } = this.state;
+    const items = this.state.states.nodes && this.state.states.nodes.filter(node => node.has_bug/* || node.id % 147 == 0*/)
+      .map(node => {
        return <div className={s.nav_box} key={node.id}>
                <h3 className={s.nav_box__title}>{node.title}</h3>
                <div className={s.nav_box__text}>{node.url}</div>
-               <div><img className={s.nav_box__image} src="https://placeimg.com/1000/1000/any" /></div>
+               <div><img className={s.nav_box__image} src={"data:image/png;base64," + node.screenshot} /></div>
              </div>
     });
-    const nodesCount = this.state.states.nodes && this.state.states.nodes.length;
+    const nodesCount = this.state.states.nodes ? this.state.states.nodes.length : 0;
 
     return(
       <div>
@@ -58,7 +59,7 @@ class Graph extends React.Component {
               ref={(graph) => { this.graph = graph; }}
             >
               <svg width="2000" height="2000"></svg>
-              <Popup title={title} text={text} hidden={hidden} onPopupClose={this.onPopupClose.bind(this)} />
+              <Popup title={title} text={text} hidden={hidden} screenshot={screenshot} onPopupClose={this.onPopupClose.bind(this)} />
             </div>
           </section>
         </div>
@@ -90,8 +91,23 @@ class Graph extends React.Component {
 
     //d3.json("states.json", function(error, graph) {
       //if (error) throw error;
-
-      this.setState({states: graph});
+      var promises = [];
+      graph.nodes.filter(node => node.has_bug).forEach(function(node) {
+        promises.push(new Promise(function(resolve, reject) {
+          fetch('http://10.76.178.67:5556/state?id=' + node.id).then(function(response) {
+            var contentType = response.headers.get("content-type");
+            if(contentType && contentType.includes("application/json")) {
+              return response.json();
+            }
+          }).then(function(a) {
+            node.screenshot = a.screenshot;
+            resolve();
+          })
+        }))
+      });
+      Promise.all(promises).then(function() {
+        this.setState({states: graph});
+      }.bind(this));
 
       var groups = Array.from(new Set(graph.nodes.map((itemNode) => itemNode.url))),
           nodes = graph.nodes.map((itemNode) => { itemNode.group = (groups.indexOf(itemNode.url) + 1); return itemNode; }),
@@ -100,9 +116,9 @@ class Graph extends React.Component {
           bilinks = [],
           k = Math.sqrt(nodes.length / (width * height));
 
-          console.log(nodes);
+          //console.log(nodes);
 
-          console.log(groups);
+          //console.log(groups);
 
           var manyBody =
                         d3
@@ -146,14 +162,36 @@ class Graph extends React.Component {
           .attr("fill", function(d) { return color(d.url); })
           .on("click", function (node) {
             var self = this;
-            fetch(getId(node.id)).then(function (response) {
-              var contentType = response.headers.get("content-type");
-              if(contentType && contentType.includes("application/json")) {
-                return response.json();
-              }
-            }).then(function (a) {
-              self.setState({ title: a.title, text: a.url, hidden: false });
-            })
+            var promises = [];
+            var newState = {};
+            promises.push(new Promise(function(resolve, reject) {
+              fetch(getId(node.id)).then(function (response) {
+                var contentType = response.headers.get("content-type");
+                if(contentType && contentType.includes("application/json")) {
+                  return response.json();
+                }
+              }).then(function (a) {
+                newState.title = a.title;
+                newState.text = a.url;
+                newState.hidden = false;
+                resolve();
+              })
+            }));
+            promises.push(new Promise(function(resolve, reject) {
+              fetch('http://10.76.178.67:5556/state?id=' + node.id).then(function(response) {
+                var contentType = response.headers.get("content-type");
+                if(contentType && contentType.includes("application/json")) {
+                  return response.json();
+                }
+              }).then(function(a) {
+                newState.screenshot = a.screenshot;
+                resolve();
+              })
+            }));
+            Promise.all(promises).then(function() {
+              //console.log(newState);
+              self.setState(newState);
+            }.bind(this));
           }.bind(this))
           /*.call(d3.drag()
               .on("start", dragstarted)
@@ -175,7 +213,7 @@ class Graph extends React.Component {
         node.attr("transform", positionNode);
       }
 
-      d3.interval(function() {
+      /*d3.interval(function() {
         var node = {
           "id": nodes.length,
           "url": "Что угодно",
@@ -186,7 +224,7 @@ class Graph extends React.Component {
         links.push([nodes[nodes.length - 1], links[links.length], node]); // Re-add b-c.
         //links.push({source: c, target: a}); // Re-add c-a.
         restart();
-      }, 2000, d3.now() + 1000);
+      }, 2000, d3.now() + 1000);*/
 
       function restart() {
 
