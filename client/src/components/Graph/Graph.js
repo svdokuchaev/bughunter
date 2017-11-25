@@ -113,30 +113,32 @@ class Graph extends React.Component {
                             return -500 * k;
                           });
 
-          simulation.force("link", d3.forceLink().distance(function (node) {
+          simulation.force("link", d3.forceLink()
+          .id(function (d) {return d.id;})
+          .distance(function (node) {
                 //if (node.source.url === node.target.url) {
                 //   return 0.05;
                 //} else {
                   return 100;
-                // }
-              }).strength(0.9))
+              }).strength(0.5))
               .force("charge", manyBody)
               // .force("gravity", function () { return -1 * k; })
               .force("center", d3.forceCenter(width / 2, height / 2));
 
-      links.forEach(function(link) {
-        var s = link.source = nodeById.get(link.source),
-            t = link.target = nodeById.get(link.target),
-            i = {}; // intermediate node
-        nodes.push(i);
-        links.push({source: s, target: i}, {source: i, target: t});
-        bilinks.push([s, i, t]);
-      });
+      // links.forEach(function(link) {
+      //   var s = link.source = nodeById.get(link.source),
+      //       t = link.target = nodeById.get(link.target),
+      //       i = {}; // intermediate node
+      //   nodes.push(i);
+      //   links.push({source: s, target: i}, {source: i, target: t});
+      // });
 
       var link = svg.selectAll(".link")
-        .data(bilinks)
-        .enter().append("path")
-          .attr("class", this.graph.dataset.link);
+        .data(links)
+        .enter().append("line")
+        .attr("class", this.graph.dataset.link)
+        .attr("stroke-width", function(d) { return 3; });
+
 
       var getId = (id) => { return 'http://10.76.178.67:5556/state?id=' + id };
 
@@ -172,41 +174,57 @@ class Graph extends React.Component {
       simulation.force("link")
           .links(links);
 
+
+
+
+    d3.interval(function() {
+
+      var node = {
+        id: nodes.length + 1,
+        title: 'Some random',
+        url: 'http://dumbfuck.com',
+        group: 1,
+        has_bug: false
+      };
+
+
+      nodes.push(node); // Re-add c.
+      links.push({source: nodes[nodes.length - 2].id, target: node.id, key: 0}); // Re-add b-c.
+      restart();
+    }.bind(this), 2000);
+
+
+    function restart() {
+
+      // Apply the general update pattern to the nodes.
+      node = node.data(nodes, function(d) { return d.id;});
+      node.exit().remove();
+      node = node.enter().append("circle").attr("fill", function(d) { return color(d.id); }).attr("r", 8).merge(node);
+
+      // Apply the general update pattern to the links.
+      link = link.data(links, function(d) { return d.source.id + "-" + d.target.id; });
+      link.exit().remove();
+      link = link.enter().append("line").merge(link);
+
+      // Update and restart the simulation.
+      simulation.nodes(nodes);
+      simulation.force("link").links(links);
+      simulation.alpha(0.3).restart();
+    }
+
+    
       function ticked() {
-        link.attr("d", positionLink);
-        node.attr("transform", positionNode);
-      }
+        link
+              .attr("x1", function(d) { return d.source.x; })
+              .attr("y1", function(d) { return d.source.y; })
+              .attr("x2", function(d) { return d.target.x; })
+              .attr("y2", function(d) { return d.target.y; });
 
-      d3.interval(function() {
-        var node = {
-          "id": nodes.length,
-          "url": "Что угодно",
-          "title": "TT RS",
-          "has_bug": null
-        };
-        nodes.push(node); // Re-add c.
-        links.push([nodes[nodes.length - 1], links[links.length], node]); // Re-add b-c.
-        //links.push({source: c, target: a}); // Re-add c-a.
-        restart();
-      }, 2000, d3.now() + 1000);
-
-      function restart() {
-
-        node = node.data(nodes, function(d) { return d.id;});
-        node.exit().remove();
-        node = node.enter().append("circle").attr("fill", function(d) { return color(d.id); }).attr("r", 8).merge(node);
-
-        link = link.data(links, function(d) {
-          //console.log(d, d[0], d[0].id, d[0].url);
-          //if(d[0]) debugger;
-           return (d[0]) ? d[0].id + "-" + d[2].id : d.source.id + "-" + d.target.id;
-         });
-        link.exit().remove();
-        link = link.enter().append("line").merge(link);
-
-        simulation.nodes(nodes);
-        simulation.force("link").links(links);
-        simulation.alpha(1).restart();
+          node
+              .attr("cx", function(d) { return d.x; })
+              .attr("cy", function(d) { return d.y; });
+        // link.attr("d", positionLink);
+        // node.attr("transform", positionNode);
       }
 
     }.bind(this));
