@@ -32,8 +32,15 @@ class Bot(object):
 
     def __init__(self, registry):
         capabilities = webdriver.DesiredCapabilities.CHROME
+
         capabilities['loggingPrefs'] = {'browser': "SEVERE", 'performance': 'ALL'}
         self.driver = webdriver.Chrome(desired_capabilities = capabilities)
+        if config.grid_server:
+            capabilities['version'] = "DEFAULT"
+            self.driver = webdriver.Remote(
+                command_executor=config.grid_server,
+                desired_capabilities=capabilities
+            )
         try:
             self.driver.maximize_window()
         except Exception:
@@ -130,7 +137,7 @@ class Bot(object):
         sid = r.cookies.get("sid")
         cps = r.cookies.get("CpsUserId")
         self.driver.add_cookie({'name': 'sid', 'value': sid, 'path': '/', 'secure': False})
-        self.driver.add_cookie({'name': 'CpsUserId', 'value': cps, 'path': '/', 'secure': False})
+        self.driver.add_cookie({'name': 'CpsUserId', 'valu e': cps, 'path': '/', 'secure': False})
 
     def kill(self):
         self.server_api.send_stop()
