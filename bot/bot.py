@@ -56,14 +56,16 @@ class Bot(object):
         self.current_state = None
         self.registry = registry
         self.counter_network = 0
-        self.server_api = ServerApi()
+        if self.registry:
+            self.server_api = ServerApi()
 
     def setup(self):
         # открываем первую страницу
         with open("first_state.jpg", 'rb') as img:
             img_byte = img.read()
             img_hash = hashlib.md5(img_byte).hexdigest()
-        self.add_state(img_hash=img_hash)
+        if self.registry:
+            self.add_state(img_hash=img_hash)
         self.open(config.site)
         self.auth(config.login, config.password)
         self.open(config.site)
