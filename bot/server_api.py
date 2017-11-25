@@ -22,9 +22,12 @@ class ServerApi(object):
     @staticmethod
     def send_start():
         response = requests.post(config.server_url + "/bot")
-        try:
-            return response.content.decode().strip("\n")
-        except Exception:
+        if response.status_code == 200:
+            try:
+                return response.content.decode().strip("\n")
+            except Exception:
+                raise Exception("Ошибка регистрации бота")
+        else:
             raise Exception("Ошибка регистрации бота")
 
     def send_stop(self):
