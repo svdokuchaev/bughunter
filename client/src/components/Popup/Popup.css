@@ -21,10 +21,12 @@
 
 .popup {
   margin: 70px auto;
-  padding: 30px;
+  padding: 35px;
   background: #fff;
   border-radius: 5px;
-  width: 30%;
+  width: 40%;
+  height: 85%;
+  overflow: auto;
   position: relative;
   transition: all 5s ease-in-out;
 }
@@ -33,11 +35,12 @@
   margin-top: 0;
   color: #333;
   font-family: Tahoma, Arial, sans-serif;
+  font-size: 35px;
 }
 .popup .close {
   position: absolute;
-  top: 20px;
-  right: 30px;
+  top: 5px;
+  right: 10px;
   transition: all 200ms;
   font-size: 30px;
   font-weight: bold;
@@ -49,7 +52,8 @@
 }
 .popup .content {
   max-height: 30%;
-  overflow: auto;
+  font-size: 13px;
+  word-wrap: break-word;
 }
 .image {
   padding: 40px;
