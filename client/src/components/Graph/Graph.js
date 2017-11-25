@@ -35,11 +35,6 @@ class Graph extends React.Component {
           </div>
         </div>
         <div className={s.main}>
-          <section id="top" className={[s.one, s.dark, s.cover].join(' ')}>
-            <div className={s.container}>
-                <h2 className={s.alt}><strong>BUGHUNTER</strong></h2>
-            </div>
-          </section>
           <section id="portfolio" className={s.two}>
             <div className={s.container}>
               <header>
@@ -51,10 +46,6 @@ class Graph extends React.Component {
                   <h2 id="bugsCount">Bugs: {this.state.stat.bugs}</h2>
                 </div>
               </header>
-              <p>Vitae natoque dictum etiam semper magnis enim feugiat convallis convallis
-              egestas rhoncus ridiculus in quis risus amet curabitur tempor orci penatibus.
-              Tellus erat mauris ipsum fermentum etiam vivamus eget. Nunc nibh morbi quis
-              fusce hendrerit lacus ridiculus.</p>
             </div>
             <div
               id="graph"
