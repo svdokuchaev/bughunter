@@ -42,6 +42,7 @@ class Graph extends React.Component {
             <div className={s.container}>
               <header>
                 <h2>Graph</h2>
+                <h2 id="nodesCount">0</h2>
               </header>
               <p>Vitae natoque dictum etiam semper magnis enim feugiat convallis convallis
               egestas rhoncus ridiculus in quis risus amet curabitur tempor orci penatibus.
@@ -97,6 +98,8 @@ class Graph extends React.Component {
           links = graph.links,
           bilinks = [],
           k = Math.sqrt(nodes.length / (width * height));
+
+          document.getElementById('nodesCount').innerHTML = nodes.length + " nodes";
 
           console.log(nodes);
 
