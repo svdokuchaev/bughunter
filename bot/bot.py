@@ -213,11 +213,12 @@ class Bot(object):
                 negative = 0
                 while negative < 10:
                     tab = tabs.item(index)
-                    if tab.is_displayed and 'controls-Checked__checked' not in tab.css_class:
-                        print(tab.text)
-                        if not tab.click():
-                            negative += 1
-                            continue
+                    print(tab.text)
+                    if tab.is_displayed:
+                        if 'controls-Checked__checked' not in tab.css_class:
+                            if not tab.click():
+                                negative += 1
+                                continue
                         time.sleep(3)
                         res = self.walk_in_registry()
                         if res:
@@ -237,7 +238,7 @@ class Bot(object):
             negative = 0
             time.sleep(5)
             su = self.driver.current_url
-            while negative < 10:
+            while negative < 25:
                 time.sleep(3)
                 res = self.walk_in_registry()
                 if res:
@@ -278,83 +279,44 @@ class Bot(object):
         except NoAlertPresentException:
             return False
 
+    def get_element(self):
+        element = random.choice([self.elements.input_controls, self.elements.controls])
+        count = element.count_elements()
+        index = random.randint(1, count)
+        return element, index
+
     def walk_in_registry(self):
+        self.wait_loading()
         counter = 0
         negative = 0
         set_elements = set()
         find_new_state = False
         while negative < 25:
-
-            # for value in [self.elements.controls, self.elements.input_controls]:
-            #     count = value.count_elements()
-            #     index = random.randint(0, count)
-            #     item = self.elements.input_controls.item(index)
-            #     hash_elm = item.hash()
-            #     if hash_elm not in set_elements:
-            #         set_elements.add(hash_elm)
-            #         size = item.size
-            #         if size['height'] * size['width'] > 255:
-            #             s = ""
-            #             for i in range(10):
-            #                 s += random.randint(ord("А"), ord("я"))
-            #             if item.type_in("test"):
-            #                 self.wait_loading()
-            #                 counter += 1
-            #                 negative = 0
-            #                 time.sleep(1)
-            #                 if self.add_state():
-            #                     find_new_state = True
-            #                 if counter > 10:
-            #                     return find_new_state
-            #                 else:
-            #                     continue
-            #
-            #
-            #
-            #
-            # count = self.elements.input_controls.count_elements()
-            # index = random.randint(0, count)
-            # item = self.elements.input_controls.item(index)
-            # hash_elm = item.hash()
-            # if hash_elm not in set_elements:
-            #     set_elements.add(hash_elm)
-            #     size = item.size
-            #     if size['height'] * size['width'] > 255:
-            #         s = ""
-            #         for i in range(10):
-            #             s += random.randint(ord("А"), ord("я"))
-            #         if item.type_in("test"):
-            #             self.wait_loading()
-            #             counter += 1
-            #             negative = 0
-            #             time.sleep(1)
-            #             if self.add_state():
-            #                 find_new_state = True
-            #             if counter > 10:
-            #                 return find_new_state
-            #             else:
-            #                 continue
-
-            count = self.elements.controls.count_elements()
-            index = random.randint(0, count)
-            item = self.elements.controls.item(index)
+            element, index = self.get_element()
+            item = element.item(index)
             hash_elm = item.hash()
-            if hash_elm not in set_elements and item.get_attribute('name') != "UserNameLinkButton":
+            if hash_elm not in set_elements:
                 set_elements.add(hash_elm)
                 size = item.size
-                if size['height'] * size['width'] > 255:
-                    if item.click():
-                        # TODO новые окна!!!
+                if size['height'] * size['width'] > 255 and element.get_attribute('name') != "UserNameLinkButton":
+                    if element == self.elements.input_controls:
+                        s = ""
+                        for i in range(10):
+                            s += chr(random.randint(ord("А"), ord("я")))
+                        action = lambda: item.type_in(s)
+                    else:
+                        action = item.click
+                    res = action()
+                    if res:
                         self.wait_loading()
                         counter += 1
                         negative = 0
                         time.sleep(1)
                         if self.add_state():
                             find_new_state = True
+                            continue
                         if counter > 10:
                             return find_new_state
-                        else:
-                            continue
             negative += 1
         return False
 
