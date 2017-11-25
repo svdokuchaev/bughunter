@@ -77,11 +77,12 @@ class Bot(object):
 
     def get_errors(self):
         """получение ошибок"""
-        errors = self.driver.get_log('browser')
-        if len([e for e in errors if "favicon.ico" not in e["message"]]):
-            return True
-        else:
-            return self.elements.error_txt.is_displayed or self.elements.error_2_txt.is_displayed
+        # errors = self.driver.get_log('browser')
+        # if len([e for e in errors if "favicon.ico" not in e["message"]]):
+        #     return True
+        # else:
+        #     return self.elements.error_txt.is_displayed or self.elements.error_2_txt.is_displayed
+        return self.elements.error_txt.is_displayed or self.elements.error_2_txt.is_displayed
 
     def wait_loading(self):
         """получение траффика"""
@@ -117,7 +118,6 @@ class Bot(object):
             request_count=self.counter_network, has_bug=has_bug
         )
         if state_id and state_id != self.current_state:
-
             if self.current_state:
                 self.server_api.send_transaction(self.current_state, state_id, action)
             self.current_state = state_id
@@ -315,15 +315,17 @@ class Bot(object):
                         for i in range(10):
                             s += chr(random.randint(ord("А"), ord("я")))
                         action = lambda: item.type_in(s)
+                        type_action = "send_keys"
                     else:
                         action = item.click
+                        type_action = "click"
                     res = action()
                     if res:
                         self.wait_loading()
                         counter += 1
                         negative = 0
                         time.sleep(1)
-                        if self.add_state():
+                        if self.add_state(type_action):
                             find_new_state = True
                             continue
                         if counter > 10:
@@ -334,13 +336,13 @@ class Bot(object):
 
 def run_bot(registry):
     bot = Bot(registry)
-    # try:
-    bot.setup()
-    bot.move()
+    try:
+        bot.setup()
+        bot.move()
     # except Exception as error:
     #     print(error)
-    # finally:
-    #     bot.kill()
+    finally:
+        bot.kill()
 
 if __name__ == '__main__':
     import sys

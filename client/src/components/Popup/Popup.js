@@ -7,6 +7,7 @@ class Popup extends React.Component {
   static propTypes = {
     title: PropTypes.string.isRequired,
     text: PropTypes.string.isRequired,
+    screenshot: PropTypes.string.isRequired
   };
   constructor(props) {
     super(props)
@@ -16,7 +17,7 @@ class Popup extends React.Component {
     this.props.onPopupClose(true);
   }
   render() {
-    const { title, text, hidden, onPopupClose } = this.props;
+    const { title, text, hidden, onPopupClose, screenshot } = this.props;
     return(
       <div id="popup1" className={s.overlay + (hidden ? "" : " " + s.overlay_opened )}>
       	<div className={s.popup}>
@@ -26,7 +27,7 @@ class Popup extends React.Component {
       			{text}
       		</div>
           <div className={s.image}>
-            <img className={s.image__img} src="https://placeimg.com/1000/1000/any" />
+            <img className={s.image__img} src={"data:image/png;base64," + screenshot} />
           </div>
       	</div>
       </div>

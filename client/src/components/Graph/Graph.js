@@ -6,21 +6,22 @@ import Popup from '../../components/Popup';
 class Graph extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {title: "shit", text: "AAAAAAAAAAAA", hidden: true, states: {}};
+    this.state = {title: "shit", text: "AAAAAAAAAAAA", screenshot: "", hidden: true, states: {}};
   }
   onPopupClose(hidden) {
     this.setState({hidden: true});
   }
   render() {
-    const { title, text, hidden } = this.state;
-    const items = this.state.states.nodes && this.state.states.nodes.slice(0, 10).map(node => {
+    const { title, text, screenshot, hidden } = this.state;
+    const items = this.state.states.nodes && this.state.states.nodes.filter(node => node.has_bug/* || node.id % 147 == 0*/)
+      .map(node => {
        return <div className={s.nav_box} key={node.id}>
                <h3 className={s.nav_box__title}>{node.title}</h3>
                <div className={s.nav_box__text}>{node.url}</div>
-               <div><img className={s.nav_box__image} src="https://placeimg.com/1000/1000/any" /></div>
+               <div><img className={s.nav_box__image} src={"data:image/png;base64," + node.screenshot} /></div>
              </div>
     });
-    const nodesCount = this.state.states.nodes && this.state.states.nodes.length;
+    const nodesCount = this.state.states.nodes ? this.state.states.nodes.length : 0;
 
     return(
       <div>
@@ -42,7 +43,7 @@ class Graph extends React.Component {
           <section id="portfolio" className={s.two}>
             <div className={s.container}>
               <header>
-                <h2>Graph</h2>
+                <h2>Stat</h2>
                 <h2 id="nodesCount">{nodesCount} nodes</h2>
               </header>
               <p>Vitae natoque dictum etiam semper magnis enim feugiat convallis convallis
@@ -60,13 +61,14 @@ class Graph extends React.Component {
               <div className={s.graphView}>
                 <svg width="2000" height="2000"></svg>
               </div>
-              <Popup title={title} text={text} hidden={hidden} onPopupClose={this.onPopupClose.bind(this)} />
+              <Popup title={title} text={text} hidden={hidden} screenshot={screenshot} onPopupClose={this.onPopupClose.bind(this)} />
             </div>
           </section>
         </div>
       </div>
     );
   }
+
 
   componentDidMount() {
     var svg = d3.select("svg"),
@@ -92,8 +94,23 @@ class Graph extends React.Component {
 
     //d3.json("states.json", function(error, graph) {
       //if (error) throw error;
-
-      this.setState({states: graph});
+      var promises = [];
+      graph.nodes.filter(node => node.has_bug).forEach(function(node) {
+        promises.push(new Promise(function(resolve, reject) {
+          fetch('http://10.76.178.67:5556/state?id=' + node.id).then(function(response) {
+            var contentType = response.headers.get("content-type");
+            if(contentType && contentType.includes("application/json")) {
+              return response.json();
+            }
+          }).then(function(a) {
+            node.screenshot = a.screenshot;
+            resolve();
+          })
+        }))
+      });
+      Promise.all(promises).then(function() {
+        this.setState({states: graph});
+      }.bind(this));
 
       var groups = Array.from(new Set(graph.nodes.map((itemNode) => itemNode.url))),
           nodes = graph.nodes.map((itemNode) => { itemNode.group = (groups.indexOf(itemNode.url) + 1); return itemNode; }),
@@ -102,25 +119,41 @@ class Graph extends React.Component {
           bilinks = [],
           k = Math.sqrt(nodes.length / (width * height));
 
-          console.log(nodes);
+          //console.log(nodes);
 
-          console.log(groups);
+          //console.log(groups);
 
           var manyBody =
                         d3
+<<<<<<< HEAD
                           .forceManyBody();
                           //.strength(function () {
                             //return -500 * k;
                           //});
+=======
+                          .forceManyBody()
+                          .strength(function () {
+                            return -300 * k;
+                          });
+>>>>>>> 1fd77cb05b749395fd7dbd8964edd3f415eb1793
 
           simulation.force("link", d3.forceLink()
           .id(function (d) { return d.id;}))
           .distance(function (node) {
+<<<<<<< HEAD
                 if (node.source.url === node.target.url) {
                    return 0.05;
                 } else {
                   return 100;
               })//.strength(0.5))
+=======
+                //if (node.source.url === node.target.url) {
+                //   return 0.05;
+                //} else {
+                  return 50;
+                // }
+              }).strength(0.9))
+>>>>>>> 1fd77cb05b749395fd7dbd8964edd3f415eb1793
               .force("charge", manyBody)
               // .force("gravity", function () { return -1 * k; })
               .force("center", d3.forceCenter(width / 2, height / 2));
@@ -150,14 +183,36 @@ class Graph extends React.Component {
           .attr("fill", function(d) { return color(d.url); })
           .on("click", function (node) {
             var self = this;
-            fetch(getId(node.id)).then(function (response) {
-              var contentType = response.headers.get("content-type");
-              if(contentType && contentType.includes("application/json")) {
-                return response.json();
-              }
-            }).then(function (a) {
-              self.setState({ title: a.title, text: a.url, hidden: false });
-            })
+            var promises = [];
+            var newState = {};
+            promises.push(new Promise(function(resolve, reject) {
+              fetch(getId(node.id)).then(function (response) {
+                var contentType = response.headers.get("content-type");
+                if(contentType && contentType.includes("application/json")) {
+                  return response.json();
+                }
+              }).then(function (a) {
+                newState.title = a.title;
+                newState.text = a.url;
+                newState.hidden = false;
+                resolve();
+              })
+            }));
+            promises.push(new Promise(function(resolve, reject) {
+              fetch('http://10.76.178.67:5556/state?id=' + node.id).then(function(response) {
+                var contentType = response.headers.get("content-type");
+                if(contentType && contentType.includes("application/json")) {
+                  return response.json();
+                }
+              }).then(function(a) {
+                newState.screenshot = a.screenshot;
+                resolve();
+              })
+            }));
+            Promise.all(promises).then(function() {
+              //console.log(newState);
+              self.setState(newState);
+            }.bind(this));
           }.bind(this))
           /*.call(d3.drag()
               .on("start", dragstarted)
@@ -193,6 +248,7 @@ class Graph extends React.Component {
       restart();
     }.bind(this), 2000);*/
 
+<<<<<<< HEAD
     var ioY = io('http://10.76.178.67:5556');
     ioY.on("connect", function(socket) {
       ioY.on('transition', function(data) {
@@ -202,6 +258,8 @@ class Graph extends React.Component {
         restart();
       });
     });
+=======
+>>>>>>> 1fd77cb05b749395fd7dbd8964edd3f415eb1793
 
     function restart() {
 
