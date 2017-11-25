@@ -36,7 +36,7 @@
 }
 
 .stat{
-  font-size: 10px;
+  font-size: 15px;
 }
 
 .newsDesc {
@@ -1652,7 +1652,7 @@
 		}
 
 	h2 {
-		font-size: 2em;
+		font-size: 2.5em;
 		letter-spacing: -1px;
     text-align: right;
 	}
