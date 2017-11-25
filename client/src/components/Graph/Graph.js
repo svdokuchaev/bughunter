@@ -14,7 +14,7 @@ class Graph extends React.Component {
   render() {
     const { title, text, hidden } = this.state;
     const items = this.state.states.nodes && this.state.states.nodes.slice(0, 10).map(node => {
-       return <div className={s.nav_box}>
+       return <div className={s.nav_box} key={node.id}>
                <h3 className={s.nav_box__title}>{node.title}</h3>
                <div className={s.nav_box__text}>{node.url}</div>
                <div><img className={s.nav_box__image} src="https://placeimg.com/1000/1000/any" /></div>
@@ -71,6 +71,9 @@ class Graph extends React.Component {
         height = +svg.attr("height");
 
    var simulation = d3.forceSimulation();
+
+   //SOCKET IO
+   console.log("SOCKET IO is here", io);
 
     var color = d3.scaleOrdinal(d3.schemeCategory20);
 

@@ -34,6 +34,7 @@ class Home extends React.Component {
       					</ul>
       			</div>
             <script src="//cdnjs.cloudflare.com/ajax/libs/d3/4.1.1/d3.min.js"></script>
+            <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
           </div>
     );
   }
