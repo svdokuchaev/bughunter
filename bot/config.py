@@ -1,7 +1,7 @@
 # encoding=utf-8
 import platform
 # general
-site = 'https://fix-online.sbis.ru'
+site = 'https://pre-test-online.sbis.ru'
 login = 'Демо_тензор'
 password = 'Демо123'
 # bot elements action
