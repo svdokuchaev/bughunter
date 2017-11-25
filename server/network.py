@@ -69,11 +69,11 @@ class Network:
         if self.get_state(state_hash=state_hash):
             return exists_state['id']
         state = State(url, title, screenshot, console, has_bug, http_requests, state_hash, request_count)
-        self.MG.add_node(state.id, url=state.url, title=state.title, has_bug=state.has_bug)
         self.session.add(state)
         self.session.commit()
         self.session.refresh(state)
         print(state.id)
+        self.MG.add_node(state.id, url=state.url, title=state.title, has_bug=state.has_bug)
         if(bot_id):
             self.update_bot(bot_id, state.id, has_bug)
         return state.id
