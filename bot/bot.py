@@ -148,7 +148,8 @@ class Bot(object):
         self.driver.add_cookie({'name': 'CpsUserId', 'value': cps, 'path': '/', 'secure': False})
 
     def kill(self):
-        self.server_api.send_stop()
+        if self.registry:
+            self.server_api.send_stop()
         self.driver.quit()
 
     def move(self):
