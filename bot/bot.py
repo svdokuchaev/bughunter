@@ -35,13 +35,15 @@ class Bot(object):
         capabilities = webdriver.DesiredCapabilities.CHROME
 
         capabilities['loggingPrefs'] = {'browser': "SEVERE", 'performance': 'ALL'}
-        self.driver = webdriver.Chrome(desired_capabilities = capabilities)
+
         if config.grid_server:
             capabilities['version'] = "DEFAULT"
             self.driver = webdriver.Remote(
                 command_executor=config.grid_server,
                 desired_capabilities=capabilities
             )
+        else:
+            self.driver = webdriver.Chrome(desired_capabilities=capabilities)
         try:
             self.driver.maximize_window()
         except Exception:
@@ -282,8 +284,11 @@ class Bot(object):
     def get_element(self):
         element = random.choice([self.elements.input_controls, self.elements.controls])
         count = element.count_elements()
-        index = random.randint(1, count)
-        return element, index
+        if count:
+            index = random.randint(1, count)
+            return element, index
+        else:
+            return None, 0
 
     def walk_in_registry(self):
         self.wait_loading()
@@ -293,6 +298,9 @@ class Bot(object):
         find_new_state = False
         while negative < 25:
             element, index = self.get_element()
+            if not element:
+                negative += 1
+                continue
             item = element.item(index)
             hash_elm = item.hash()
             if hash_elm not in set_elements:
