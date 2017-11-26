@@ -28,11 +28,6 @@ class Home extends React.Component {
     return (
         <div className={s.root}>
             <Graph />
-      			<div id={s.footer}>
-      					<ul className={s.copyright}>
-      						<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
-      					</ul>
-      			</div>
             <script src="//cdnjs.cloudflare.com/ajax/libs/d3/4.1.1/d3.min.js"></script>
             <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
           </div>

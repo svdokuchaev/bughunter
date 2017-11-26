@@ -78,7 +78,7 @@ class Graph extends React.Component {
 
     var color = d3.scaleOrdinal(d3.schemeCategory20);
 
-    fetch('http://10.76.178.67:5556/stats').then(function(response) {
+    fetch('http://10.76.147.165:5556/stats').then(function(response) {
       var contentType = response.headers.get("content-type");
       if(contentType && contentType.includes("application/json")) {
         return response.json();
@@ -87,7 +87,7 @@ class Graph extends React.Component {
       this.setState({stat: a})
     }.bind(this));
 
-    fetch('http://10.76.178.67:5556/network').then(function (response) {
+    fetch('http://10.76.147.165:5556/network').then(function (response) {
       var contentType = response.headers.get("content-type");
       if(contentType && contentType.includes("application/json")) {
         return response.json();
@@ -101,7 +101,7 @@ class Graph extends React.Component {
       var promises = [];
       graph.nodes.filter(node => node.has_bug).forEach(function(node) {
         promises.push(new Promise(function(resolve, reject) {
-          fetch('http://10.76.178.67:5556/state?id=' + node.id).then(function(response) {
+          fetch('http://10.76.147.165:5556/state?id=' + node.id).then(function(response) {
             var contentType = response.headers.get("content-type");
             if(contentType && contentType.includes("application/json")) {
               return response.json();
@@ -129,7 +129,7 @@ class Graph extends React.Component {
 
           var manyBody =
                         d3
-                          .forceManyBody().strength(-5);
+                          .forceManyBody().strength(-8);
 
           simulation.force("link", d3.forceLink()
           .id(function (d) { return d.id;})
@@ -154,7 +154,7 @@ class Graph extends React.Component {
         .attr("stroke-width", function(d) { return 3; });
 
 
-      var getId = (id) => { return 'http://10.76.178.67:5556/state?id=' + id };
+      var getId = (id) => { return 'http://10.76.147.165:5556/state?id=' + id };
 
       var node = svg.selectAll(".node")
         .data(nodes.filter(function(d) { return d.id; }))
@@ -180,7 +180,7 @@ class Graph extends React.Component {
               })
             }));
             promises.push(new Promise(function(resolve, reject) {
-              fetch('http://10.76.178.67:5556/state?id=' + node.id).then(function(response) {
+              fetch('http://10.76.147.165:5556/state?id=' + node.id).then(function(response) {
                 var contentType = response.headers.get("content-type");
                 if(contentType && contentType.includes("application/json")) {
                   return response.json();
@@ -229,7 +229,7 @@ class Graph extends React.Component {
       restart();
     }.bind(this), 2000);*/
 
-    var ioY = io('http://10.76.178.67:5556');
+    var ioY = io('http://10.76.147.165:5556');
     ioY.on("connect", function(socket) {
       ioY.on('transition', function(data) {
         updateBugList(data.state_target[0]);
@@ -249,7 +249,7 @@ class Graph extends React.Component {
       if (!node.has_bug) return;
       var promises = [];
       promises.push(new Promise(function(resolve, reject) {
-        fetch('http://10.76.178.67:5556/state?id=' + node.id).then(function(response) {
+        fetch('http://10.76.147.165:5556/state?id=' + node.id).then(function(response) {
           var contentType = response.headers.get("content-type");
           if(contentType && contentType.includes("application/json")) {
             return response.json();
@@ -295,7 +295,7 @@ class Graph extends React.Component {
       .attr("stroke-width", function(d) { return 3; }).merge(link);
 
       // Update and restart the simulation.
-      simulation.nodes(nodes);
+      simulation.nodes(nodes).on("tick", ticked);
       simulation.force("link").links(links);
       simulation.alpha(0.3).restart();
     }
