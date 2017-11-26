@@ -129,11 +129,11 @@ class Graph extends React.Component {
 
           var manyBody =
                         d3
-                          .forceManyBody().strength(-4);
+                          .forceManyBody().strength(-5);
 
           simulation.force("link", d3.forceLink()
           .id(function (d) { return d.id;})
-          .distance(3).strength(1).iterations(10))
+          .distance(20).strength(1).iterations(10))
               //.strength(0.5))
               .force("charge", manyBody)
               // .force("gravity", function () { return -1 * k; })
@@ -239,7 +239,7 @@ class Graph extends React.Component {
           bots: this.state.stat.bots,
           states: this.state.stat.states + 1,
           edges: this.state.stat.edges + 1,
-          bugs: data.state_target[0].has_bugs ? this.state.stat.bugs + 1 : this.state.stat.bugs
+          bugs: data.state_target[0].has_bug ? this.state.stat.bugs + 1 : this.state.stat.bugs
         }})
         restart.call(this);
       }.bind(this));
@@ -283,12 +283,15 @@ class Graph extends React.Component {
       // Apply the general update pattern to the nodes.
       node = node.data(nodes, function(d) { return d.id;});
       node.exit().remove();
-      node = node.enter().append("circle").attr("fill", function(d) { return color(d.url); }).attr("r", 8).merge(node);
+      node = node.enter().append("circle").attr("fill", function(d) { return color(d.url); }).attr("r", 10)
+      .attr("class", function (node) { if (node.has_bug) { return this.graph.dataset.node + ' ' + this.graph.dataset.error  } return this.graph.dataset.node; }.bind(this))
+      .merge(node);
 
       // Apply the general update pattern to the links.
       link = link.data(links, function(d) { return d.source.id + "-" + d.target.id; });
       link.exit().remove();
-      link = link.enter().append("line").attr("class", this.graph.dataset.link)
+      link = link.enter().append("line")
+      .attr("r", radius)
       .attr("stroke-width", function(d) { return 3; }).merge(link);
 
       // Update and restart the simulation.
